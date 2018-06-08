@@ -38,8 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'world',
-    'location_field.apps.DefaultConfig',
+    'devices',
 ]
 
 MIDDLEWARE = [
@@ -78,8 +77,8 @@ WSGI_APPLICATION = 'dim4webapp.wsgi.application'
 
 DATABASES = {
     'default': {
-         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'testMap',
+         'ENGINE': 'django.db.backends.postgresql',
+         'NAME': 'database4dim',
         'USER': 'mattia',
     },
 }

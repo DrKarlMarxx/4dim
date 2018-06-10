@@ -25,7 +25,7 @@ SECRET_KEY = 'lm*u+)(ho0!_ni8d0zeuuflci#mh+7l9lvi&c$z7ir+p4^5%n('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['drkarlmarxx.pythonanywhere.com']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'django_cron',
     'devices',
+    'django_cron',
 ]
 
 MIDDLEWARE = [
@@ -79,10 +80,17 @@ WSGI_APPLICATION = 'dim4webapp.wsgi.application'
 DATABASES = {
     'default': {
          'ENGINE': 'django.db.backends.postgresql',
-         'NAME': 'database4dim',
+         'NAME': 'dim4db',
         'USER': 'mattia',
+        'PASSWORD': '8tunG8989',
+        'HOST': 'DrKarlMarxx-780.postgres.pythonanywhere-services.com',
+        'PORT': 10780,
     },
 }
+
+CRON_CLASSES = [
+    'devices.apps.ReadFromLuftdateInfoJSON',
+]
 
 
 CRON_CLASSES = [

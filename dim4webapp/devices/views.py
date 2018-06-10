@@ -12,6 +12,7 @@ def index(request):
 
 def detail(request, owner_id):
     owner_sensor_list = Sensor.objects.filter(owner=owner_id)
+
     template = loader.get_template('devices/detail.html')
     context = {'owner_sensor_list': owner_sensor_list}
     return HttpResponse(template.render(context,request))

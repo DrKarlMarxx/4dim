@@ -16,22 +16,20 @@
 <body>
 <h1>{{ Owner.name }}</h1>
 <div id="mapid" style="width: 1200px; height: 800px;"></div>
-<ul>
-{% for sensor in owner_sensor_list %}
-    <li>{{ sensor.longitude }}</li>
-{% endfor %}
-</ul>
+
 
 <script type="text/javascript">
     	var mymap = L.map('mapid').setView([46.7984, 8.231879], 8);
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         maxZoom: 18,
-        id: 'mapbox.satellite',
+        id: 'mapbox.streets',
         accessToken: 'pk.eyJ1IjoiZHJrYWxybWFyeHgiLCJhIjoiY2poeGl3NXc3MGI2dzNxcHV1eHh2OGh4ZyJ9.9VnqOY3kY8Rid8FUFb2Okw',
     }).addTo(mymap);
     {% for sensor in owner_sensor_list %}
+        {% value = sensor.getCurrentValue %}
        var marker = L.marker([{{ sensor.latitude }}, {{ sensor.longitude }}]).addTo(mymap);
+       marker.bindPopup('{{sensor.getCurrentValue()}}');
     {% endfor %}
 
 </script>

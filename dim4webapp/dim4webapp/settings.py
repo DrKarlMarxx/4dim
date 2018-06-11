@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'django_cron',
     'devices',
-    'django_cron',
 ]
 
 MIDDLEWARE = [

@@ -1,10 +1,6 @@
 from django.apps import AppConfig
 from django_cron import CronJobBase, Schedule
-<<<<<<< HEAD
 from .models import Sensor, Owner, SensorValue
-=======
-from .models import Sensor, Owner
->>>>>>> f9d55104e879fdd03d9145ef30b49de67f006b51
 import json
 import urllib.request
 
@@ -23,33 +19,20 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
         with urllib.request.urlopen(url) as urlJson:
             data = json.loads(urlJson.read())
 
-<<<<<<< HEAD
-        ownerLDI, created = Owner.objects.get_or_create(name='LufdatenInfo', idNumber=int(3))
+        ownerLDI, created = Owner.objects.get_or_create(name='LufdatenInfo', idNumber=int(1))
         if created:
             ownerLDI.save()
-=======
-        ownerLDI = Owner.objects.get_or_create(name='LufdateInfo', idNumber=int(3))
-        ownerLDI.save()
->>>>>>> f9d55104e879fdd03d9145ef30b49de67f006b51
         print(ownerLDI)
         for sensorData in data:
 
             sensorModel, created = Sensor.objects.get_or_create(
-<<<<<<< HEAD
                 owner_id= 1,
                 name = str(sensorData['id']),
                 idNumber = int(sensorData['id']),
-=======
-                owner_id= 2,
-                name = str(sensorData['id']),
-                idNumber = int(sensorData['id']),
-                value = float(0.0),
->>>>>>> f9d55104e879fdd03d9145ef30b49de67f006b51
                 latitude = float(sensorData['location']['latitude']),
                 longitude = float(sensorData['location']['longitude']),
                 location = 'None'
                 )
-<<<<<<< HEAD
 
             if created:
                 sensorModel.save()
@@ -58,7 +41,3 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
             if created:
                 timestepData.save()
             print(sensorData)
-=======
-            print(sensorData)
-            sensorModel.save()
->>>>>>> f9d55104e879fdd03d9145ef30b49de67f006b51

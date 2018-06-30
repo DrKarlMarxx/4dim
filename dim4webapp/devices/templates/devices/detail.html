@@ -28,10 +28,11 @@
     }).addTo(mymap);
     {% for sensor in owner_sensor_list %}
        var marker = L.marker([{{ sensor.latitude }}, {{ sensor.longitude }}]).addTo(mymap);
-       marker.bindPopup('blablupp');
+       marker.bindPopup('{{sensor.location}}');
     {% endfor %}
 
 </script>
+
 </body>
 </html>
 

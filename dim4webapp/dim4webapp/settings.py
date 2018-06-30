@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_cron',
+    'channels',
     'devices',
 ]
 
@@ -78,7 +79,7 @@ WSGI_APPLICATION = 'dim4webapp.wsgi.application'
 
 DATABASES = {
     'default': {
-         'ENGINE': 'django.db.backends.postgresql',
+         'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'dim4db',
         'USER': 'mattia',
         'PASSWORD': '8tunG8989',
@@ -89,12 +90,9 @@ DATABASES = {
 
 CRON_CLASSES = [
     'devices.apps.ReadFromLuftdateInfoJSON',
+    'devices.apps.ReadFromLoriotWebSocket' ,
 ]
 
-
-CRON_CLASSES = [
-    'devices.apps.ReadFromLuftdateInfoJSON',
-]
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -113,6 +111,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+ASGI_APPLICATION = "myproject.routing.application"
 
 
 # Internationalization
@@ -133,3 +133,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")

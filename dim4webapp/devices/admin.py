@@ -1,16 +1,14 @@
-from django.contrib import admin
-
 # Register your models here.
-from django.contrib import admin
+from django.contrib.gis import admin
 
 from .models import Owner, Sensor,SensorValue
 
 
 
-class MyClassAdmin(admin.ModelAdmin):
-    readonly_fields = ('created', 'modified', )
+class MyClassAdmin(admin.GeoModelAdmin):
+    readonly_fields = ('created', 'modified', 'geom')
 
 
 admin.site.register(Owner)
-admin.site.register(Sensor)
-admin.site.register(SensorValue,MyClassAdmin)
+admin.site.register(Sensor,admin.GeoModelAdmin)
+admin.site.register(SensorValue,admin.GeoModelAdmin)

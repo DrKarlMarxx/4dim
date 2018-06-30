@@ -1,0 +1,5 @@
+#!/bin/bash
+
+workon venvpa
+
+python /home/DrKarlMarxx/4dim/dim4webapp/manage.py runcrons

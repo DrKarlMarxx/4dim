@@ -1,6 +1,9 @@
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 from django.utils import timezone
+from django.contrib.gis.db import models as gisModels
+from django.db.models import Manager as GeoManager
+
 # Create your models here.
 
 
@@ -11,14 +14,16 @@ class Owner(models.Model):
         return self.name
 
 
-class Sensor(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
-    idNumber = models.IntegerField()
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    location = models.CharField(max_length=100)
-    objects = models.Manager()
+class Sensor(gisModels.Model):
+    owner = gisModels.ForeignKey(Owner, on_delete=models.CASCADE)
+    name = gisModels.CharField(max_length=200)
+    idNumber = gisModels.IntegerField()
+    geom = gisModels.PointField()
+    location = gisModels.CharField(max_length=200)
+    objects = GeoManager()
+    longitude = gisModels.FloatField()
+    latitude = gisModels.FloatField()
+
 
 
 

@@ -2,3 +2,4 @@
 *.pyo
 venv/
 Leaflet/
+dim4webapp/dim4webapp/settings.py

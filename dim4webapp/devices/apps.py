@@ -36,7 +36,6 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
 
 
 
-            sensorModel
             sensorModel, created = Sensor.objects.get_or_create(
                 owner_id= ownerLDI.id,
                 name = str(sensorData['location']['id']),

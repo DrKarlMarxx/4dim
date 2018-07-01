@@ -6,6 +6,7 @@ import urllib.request
 from django.contrib.gis.geos import Point
 import asyncio
 import websockets as ws
+from django.utils import timezone
 
 class DevicesConfig(AppConfig):
     name = 'devices'
@@ -35,11 +36,11 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
 
 
 
-
+            sensorModel
             sensorModel, created = Sensor.objects.get_or_create(
                 owner_id= ownerLDI.id,
-                name = str(sensorData['id']),
-                idNumber = int(sensorData['id']),
+                name = str(sensorData['location']['id']),
+                idNumber = int(sensorData['location']['id']),
                 geom = Point(float(sensorData['location']['longitude']),float(sensorData['location']['latitude'])),
                 location = 'Empty',
                 longitude = float(sensorData['location']['longitude']),

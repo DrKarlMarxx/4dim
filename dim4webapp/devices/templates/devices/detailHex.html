@@ -3,45 +3,140 @@
 {% load staticfiles %}
 
 {% block body_block %}
-<h1>test</h1>
 <div id="mapid" style="width: 1200px; height: 800px;"></div>
-<p id="fooHolder"></p>
+<canvas id="myChart" width="500" height="400"></canvas>
+
+<div id="hovered">
+	<label>Hovered: </label>
+	<span class="count"></span>
+</div>
+
 
 <script type="text/javascript">
 
-    	var mymap = L.mapbox.map('mapid','mapbox.streets').setView([46.7984, 8.231879], 8);
+
+        //L.mapbox.accessToken = 'pk.eyJ1IjoiZHJrYWxybWFyeHgiLCJhIjoiY2poeGl3NXc3MGI2dzNxcHV1eHh2OGh4ZyJ9.9VnqOY3kY8Rid8FUFb2Okw'
+    	var mymap = L.map('mapid','mapbox.streets').setView([46.7984, 8.231879], 8);
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         maxZoom: 18,
         id: 'mapbox.streets',
+        renderer: L.svg(),
         accessToken: 'pk.eyJ1IjoiZHJrYWxybWFyeHgiLCJhIjoiY2poeGl3NXc3MGI2dzNxcHV1eHh2OGh4ZyJ9.9VnqOY3kY8Rid8FUFb2Okw',
     }).addTo(mymap);
-    var markersLayer = L.featureGroup().on("click", groupClick);
-    var hexLayer = L.hexbinLayer(markersLayer, {
-                  style: hexbinStyle,
-                  mouse: makePie
-                }).addTo(mymap);
+		// Make a reusable color scale array
+		var colorRange = [ 'green', 'yellow', 'red' ];
+		// Create the legend to illustrate the color scale being divergent
+		var legendEntries = [ '0% - lowest value', '25%', '50%', '75%', '100% - max value' ];
+		var colorScale = d3.scaleLinear().domain([ 0, 2, 4 ]).range(colorRange);
+		var legend = d3.select('.legend').selectAll('.legend-entry').data(legendEntries).enter().append('div').attr('class', 'legend-entry');
+		legend.append('div').attr('class', 'color-tile').style('background-color', function(d, i) { return colorScale(i); });
+		legend.append('div').attr('class', 'description').text(function(d) { return d; });
+
+    var options = {
+    radius : 12,
+    radiusRange: [ 12, 20 ],
+    opacity: 0.5,
+    duration: 500,
+    colorRange: colorRange,
+    colorScaleExtent: [undefined,undefined]
+};
+
+
+    var hexLayer = L.hexbinLayer(options).addTo(mymap)
+    hexLayer
+  .radiusRange([6, 11])
+	.lng(function(d) { return d[0]; })
+  .lat(function(d) { return d[1]; })
+  .colorValue(function(d){
+                    return calculateMean(d);
+                })
+  .radiusValue(function(d) { return d.length; })
+  .hoverHandler(L.HexbinHoverHandler.resizeFill());
+
+	// Set up hover handler
+	hexLayer.hoverHandler(L.HexbinHoverHandler.tooltip(function(d){
+                    return calculateMean(d);}));
+
+	hexLayer.dispatch()
+		.on('mouseover', function(d, i) {setHovered(d);})
+		.on('click', function(d, i) {
+				showDataMulti(d);
+			});
+
+	function calculateMean(d) {
+		var sum = 0;
+		d.forEach(function (datum) {
+				sum += datum.o[2];
+			});
+		var mean = sum / d.length;
+		return mean/100;
+		}
+
+	function setHovered(d) {
+		    d3.select('#hovered .count').text((null != d) ? calculateMean(d) : '');
+
+		}
     var i=0;
-    var marker = []
+
+    var data = [];
     {% for sensor in owner_sensor_list %}
-       i+=1;
-       marker[i] = L.marker([{{ sensor.latitude }}, {{ sensor.longitude }}]).addTo(markersLayer);
-       marker[i].bindPopup('{{sensor.location}}');
-       marker[i].id = {{sensor.id}}
+       data.push([{{ sensor.longitude }}, {{ sensor.latitude }},{{sensor.currentvalue}},{{sensor.id}}]);
     {% endfor %}
-    function groupClick(event) {
-        showData(event.layer.id);
-    }
+    hexLayer.data(data);
 
-
-    function showData(marker_id) {
+	function showData(marker_id) {
         ajaxGet('/devices/api/'+String(marker_id)+'/getSensorData', function(content){
             //onSuccess
-            document.getElementById("fooHolder").innerHTML = content.toString();
+            var ctx = $("#myChart").get(0).getContext("2d");
+                new Chart(ctx, {
+                    type: 'line', data: data
+                });
             alert(content);
         })
         var a = 1;
         }
+
+	function showDataMulti(d) {
+		var urlIDs='';
+		var timeFormat = 'YYYY-MM-DD HH:mm:ss';
+		d.forEach(function (datum) {
+				urlIDs+= String(datum.o[3])+'&';
+			});
+		urlIDs =  urlIDs.slice(0,-1);
+        $.get('/devices/api/'+urlIDs+'/getSensorData', function(data){
+            //onSuccess
+            var ctx = $("#myChart").get(0).getContext("2d");
+			new Chart(ctx, {
+				type: 'line',
+				 data: data,
+				 options: {
+				 	responsive: true,
+					title: {
+						text: 'Chart.js Time Scale'
+					},
+					scales: {
+						xAxes: [{
+							type: 'time',
+							display: true,
+							scaleLabel: {
+								display: true,
+								labelString: 'Date'
+							}
+						}],
+						yAxes: [{
+							scaleLabel: {
+								display: true,
+								labelString: 'value'
+							}
+						}]
+					},
+        		},
+			});
+        });
+	}
+
+
 </script>
 
 {% endblock %}

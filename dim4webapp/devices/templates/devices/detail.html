@@ -1,24 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Owner Details</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
-   integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
-   crossorigin=""/>
- <!-- Make sure you put this AFTER Leaflet's CSS -->
- <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
-   integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
-   crossorigin="">
- </script>
+{% extends 'devices/base.html' %}
 
-</head>
-<body>
-<h1>{{ Owner.name }}</h1>
+{% load staticfiles %}
+
+{% block body_block %}
+<h1>test</h1>
+	<h2>Leaflet d3 Hexbin Example With Divergent Color Scale</h2>
+	<div class="legend"></div>
+	<br/>
+<div id="fooHolder"></div>
 <div id="mapid" style="width: 1200px; height: 800px;"></div>
 
 
 <script type="text/javascript">
+
     	var mymap = L.map('mapid').setView([46.7984, 8.231879], 8);
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -26,13 +20,30 @@
         id: 'mapbox.streets',
         accessToken: 'pk.eyJ1IjoiZHJrYWxybWFyeHgiLCJhIjoiY2poeGl3NXc3MGI2dzNxcHV1eHh2OGh4ZyJ9.9VnqOY3kY8Rid8FUFb2Okw',
     }).addTo(mymap);
-    {% for sensor in owner_sensor_list %}
-       var marker = L.marker([{{ sensor.latitude }}, {{ sensor.longitude }}]).addTo(mymap);
-       marker.bindPopup('{{sensor.location}}');
-    {% endfor %}
+    var markersLayer = L.featureGroup().addTo(mymap).on("click", groupClick);
 
+    var i=0;
+    var marker = []
+    {% for sensor in owner_sensor_list %}
+       i+=1;
+       marker[i] = L.marker([{{ sensor.latitude }}, {{ sensor.longitude }}]).addTo(markersLayer);
+       marker[i].bindPopup('{{sensor.location}}');
+       marker[i].id = {{sensor.id}}
+    {% endfor %}
+    function groupClick(event) {
+        showData(event.layer.id);
+    }
+
+
+    function showData(marker_id) {
+        ajaxGet('/devices/api/'+String(marker_id)+'/getSensorData', function(content){
+            //onSuccess
+            $('#fooHolder').html(content);
+            alert(content);
+        })
+        var a = 1;
+        }
 </script>
 
-</body>
-</html>
+{% endblock %}
 

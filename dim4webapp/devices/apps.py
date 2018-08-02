@@ -35,29 +35,44 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
 
 
 
+            currentSensor = Sensor.objects.filter(ldi_number=int(sensorData['sensor']['id']))
 
-            sensorModel, created = Sensor.objects.get_or_create(
-                owner_id= ownerLDI.id,
-                name = str(sensorData['location']['id']),
-                idNumber = int(sensorData['location']['id']),
-                geom = Point(float(sensorData['location']['longitude']),float(sensorData['location']['latitude'])),
-                location = 'Empty',
-                longitude = float(sensorData['location']['longitude']),
-                latitude = float(sensorData['location']['latitude'])
+            type_selection = [d['value_type'] for d in sensorData['sensordatavalues'][:]] == "P1"
 
-                )
+            if currentSensor.count()==0:
+                print('new')
+                print(int(sensorData['id']))
+                sensorModel, created = Sensor.objects.get_or_create(
+                    owner_id= ownerLDI.id,
+                    location_number = str(sensorData['location']['id']),
+                    ldi_number = int(sensorData['sensor']['id']),
+                    geom = Point(float(sensorData['location']['longitude']),float(sensorData['location']['latitude'])),
+                    location = 'Empty',
+                    longitude = float(sensorData['location']['longitude']),
+                    latitude = float(sensorData['location']['latitude']),
+                    )
 
-            if created:
+                print('entryMade')
                 geoNamesRequestUrl = r'http://api.geonames.org/findNearbyJSON?lat='+str(sensorLatitude)+'&lng='+str(sensorLongitude)+'&username=DrKarlMarxx'
-                with urllib.request.urlopen(geoNamesRequestUrl) as urlJson:
-                    geoNamesData = json.loads(urlJson.read())
-                sensorModel.location = geoNamesData["geonames"][0]["toponymName"]
+                print(geoNamesRequestUrl)
+                try:
+                    with urllib.request.urlopen(geoNamesRequestUrl) as urlJson:
+                        geoNamesData = json.loads(urlJson.read())
+                    sensorModel.location = geoNamesData["geonames"][0]["toponymName"]
+                except:
+                    pass
                 sensorModel.save()
                 print(sensorModel.geom)
-            valueFromJson = float(sensorData['sensordatavalues'][0]['value'])
-            timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson)
-            if created:
-                timestepData.save()
+            else:
+                sensorModel =currentSensor[0]
+                print('existing')
+
+            for sensorvalueList in sensorData['sensordatavalues'][:]:
+                typeFromJson = str(sensorvalueList['value_type'])
+                valueFromJson = float(sensorvalueList['value'])
+                timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
+                if created:
+                    timestepData.save()
 
         for savedSensorValue in SensorValue._meta.get_fields():
             if (timezone.now()-savedSensorValue.Created).days > 7:
@@ -121,3 +136,7 @@ class ReadFromLoriotWebSocket(CronJobBase):
                 savedSensorValue.delete()
 
 
+if __name__ == "__main__":
+    test = ReadFromLuftdateInfoJSON()
+    thread.start_new_thread(myfunction, ("Thread #: 1", 2, lock))
+    thread.start_new_thread(myfunction, ("Thread #: 2", 2, lock))

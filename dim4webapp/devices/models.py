@@ -16,13 +16,16 @@ class Owner(models.Model):
 
 class Sensor(gisModels.Model):
     owner = gisModels.ForeignKey(Owner, on_delete=models.CASCADE)
-    name = gisModels.CharField(max_length=200)
-    idNumber = gisModels.IntegerField()
+    location_number = gisModels.CharField(max_length=200)
+    ldi_number = gisModels.IntegerField()
     geom = gisModels.PointField()
     location = gisModels.CharField(max_length=200)
     objects = GeoManager()
     longitude = gisModels.FloatField()
     latitude = gisModels.FloatField()
+
+    def __repr__(self):
+        return 'ldi_number' + str(self.ldi_number)
 
 
 
@@ -39,5 +42,6 @@ class SensorValue(TimeStampedModel):
     created = models.DateTimeField(default=timezone.now())
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     value = models.FloatField()
+    type = models.CharField(max_length=100)
 
 

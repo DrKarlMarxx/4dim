@@ -16,10 +16,10 @@
 </head>
 <body>
 <div id="mapid" style="width: 1200px; height: 800px;"></div>
-    {% if latest_owner_list %}
+    {% if value_list %}
     <ul>
-    {% for owner in latest_owner_list %}
-        <li><a href="{% url 'detail' owner.id %}">{{ owner.name }}</a></li>
+    {% for value in value_list %}
+        <li>{{ value.value }}</a></li>
     {% endfor %}
     </ul>
 {% else %}

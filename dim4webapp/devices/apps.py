@@ -27,6 +27,8 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
         if created:
             ownerLDI.save()
         print(ownerLDI)
+
+        usedIDSet = set()
         for sensorData in data:
 
             sensorLatitude = sensorData['location']['latitude']
@@ -66,13 +68,14 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
             else:
                 sensorModel =currentSensor[0]
                 print('existing')
-
-            for sensorvalueList in sensorData['sensordatavalues'][:]:
-                typeFromJson = str(sensorvalueList['value_type'])
-                valueFromJson = float(sensorvalueList['value'])
-                timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
-                if created:
-                    timestepData.save()
+            if sensorModel.id not in usedIDSet:
+                for sensorvalueList in sensorData['sensordatavalues'][:]:
+                    typeFromJson = str(sensorvalueList['value_type'])
+                    valueFromJson = float(sensorvalueList['value'])
+                    timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
+                    if created:
+                        timestepData.save()
+                usedIDSet.add(sensorModel.id)
 
         for savedSensorValue in SensorValue._meta.get_fields():
             if (timezone.now()-savedSensorValue.Created).days > 7:

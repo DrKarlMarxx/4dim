@@ -3,8 +3,8 @@
 {% load staticfiles %}
 
 {% block body_block %}
-<div id="mapid" style="width: 1200px; height: 800px;"></div>
-<canvas id="myChart" width="500" height="400"></canvas>
+<div id="mapid" style="height: 400px; width:100%"></div>
+<canvas id="myChart" width="500" height="200"></canvas>
 
 <div id="hovered">
 	<label>Hovered: </label>
@@ -27,19 +27,13 @@
 		// Make a reusable color scale array
 		var colorRange = [ 'green', 'yellow', 'red' ];
 		// Create the legend to illustrate the color scale being divergent
-		var legendEntries = [ '0% - lowest value', '25%', '50%', '75%', '100% - max value' ];
-		var colorScale = d3.scaleLinear().domain([ 0, 2, 4 ]).range(colorRange);
-		var legend = d3.select('.legend').selectAll('.legend-entry').data(legendEntries).enter().append('div').attr('class', 'legend-entry');
-		legend.append('div').attr('class', 'color-tile').style('background-color', function(d, i) { return colorScale(i); });
-		legend.append('div').attr('class', 'description').text(function(d) { return d; });
-
     var options = {
     radius : 12,
     radiusRange: [ 12, 20 ],
     opacity: 0.5,
     duration: 500,
     colorRange: colorRange,
-    colorScaleExtent: [undefined,undefined]
+    colorScaleExtent: [0,100]
 };
 
 
@@ -64,13 +58,41 @@
 				showDataMulti(d);
 			});
 
+	var ctx = $("#myChart").get(0).getContext("2d");
+	var config = {
+		type: 'line',
+		 data: '',
+		 options: {
+			responsive: true,
+			title: {
+				text: 'Chart.js Time Scale'
+			},
+			scales: {
+				xAxes: [{
+					type: 'time',
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Date'
+					}
+				}],
+				yAxes: [{
+					scaleLabel: {
+						display: true,
+						labelString: 'value'
+					}
+				}]
+			},
+		},
+	}
+	window.myLine=new Chart(ctx, config);
 	function calculateMean(d) {
 		var sum = 0;
 		d.forEach(function (datum) {
 				sum += datum.o[2];
 			});
 		var mean = sum / d.length;
-		return mean/100;
+		return mean;
 		}
 
 	function setHovered(d) {
@@ -106,33 +128,8 @@
 		urlIDs =  urlIDs.slice(0,-1);
         $.get('/devices/api/'+urlIDs+'/getSensorData', function(data){
             //onSuccess
-            var ctx = $("#myChart").get(0).getContext("2d");
-			new Chart(ctx, {
-				type: 'line',
-				 data: data,
-				 options: {
-				 	responsive: true,
-					title: {
-						text: 'Chart.js Time Scale'
-					},
-					scales: {
-						xAxes: [{
-							type: 'time',
-							display: true,
-							scaleLabel: {
-								display: true,
-								labelString: 'Date'
-							}
-						}],
-						yAxes: [{
-							scaleLabel: {
-								display: true,
-								labelString: 'value'
-							}
-						}]
-					},
-        		},
-			});
+			config.data = data;
+			window.myLine.update();
         });
 	}
 

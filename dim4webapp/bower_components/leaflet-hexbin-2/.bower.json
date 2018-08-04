@@ -1,0 +1,44 @@
+{
+  "name": "leaflet-hexbin-2",
+  "authors": [
+    "reblace <reblace@gmail.com>",
+    "syntagmatic"
+  ],
+  "main": "dist/leaflet-hexbin.js",
+  "scripts": [
+    "dist/leaflet-hexbin.js"
+  ],
+  "license": "MIT",
+  "ignore": [
+    ".DS_Store",
+    ".git",
+    ".gitignore",
+    ".travis.yml",
+    ".bowerrc",
+    ".jshintrc",
+    ".project",
+    "gulpfile.js",
+    "package.json",
+    "examples",
+    "node_modules",
+    "package.json",
+    "src",
+    "test"
+  ],
+  "dependencies": {
+    "d3": "~3.4.11",
+    "leaflet": "~0.7.3",
+    "d3-plugins": "*"
+  },
+  "homepage": "https://github.com/syntagmatic/leaflet-hexbin",
+  "_release": "c4ae398dd8",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "c4ae398dd8ee2626fe3ed1f86744b1583dd520cc"
+  },
+  "_source": "https://github.com/syntagmatic/leaflet-hexbin.git",
+  "_target": "*",
+  "_originalSource": "leaflet-hexbin-2",
+  "_direct": true
+}

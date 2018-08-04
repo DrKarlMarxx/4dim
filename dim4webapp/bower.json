@@ -1,0 +1,21 @@
+{
+  "name": "4dim",
+  "homepage": "https://github.com/DrKarlMarxx/4dim",
+  "authors": [
+    "Mattia <mattia.b@bluemail.ch>"
+  ],
+  "description": "MAS thesis project",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "leaflet-hexbin-2": "*"
+  }
+}

@@ -1,0 +1,56 @@
+
+    <div id="linechart"><svg style="height:450px;"></svg></div>
+
+
+    <script>
+
+
+
+            data_linechart=[{"values": [{"x": 1533121627000.0, "y": 7.065}, {"x": 1533121627000.0, "y": 7.8}], "key": "sine", "yAxis": "1", "color": "black"}];
+
+
+        nv.addGraph(function() {
+        var chart = nv.models.lineChart();
+
+        chart.margin({top: 30, right: 60, bottom: 20, left: 60});
+
+        var datum = data_linechart;
+
+
+
+                chart.xAxis
+                .tickFormat(function(d) { return get_am_pm(parseInt(d)); });
+            chart.yAxis
+                .tickFormat(d3.format(',.02f'));
+
+
+        function get_am_pm(d){
+            if (d > 12) {
+                d = d - 12; return (String(d) + 'PM');
+            }
+            else {
+                return (String(d) + 'AM');
+            }
+        };
+
+          chart.showLegend(true);
+
+
+    
+
+        
+
+
+
+            d3.select('#linechart svg')
+            .datum(datum)
+            .transition().duration(500)
+            .attr('height', 450)
+            .call(chart);
+
+
+        });
+
+
+
+    </script>

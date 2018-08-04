@@ -10,7 +10,6 @@ from django_ajax.decorators import ajax
 from django.core.serializers import serialize
 import datetime
 import time
-from nvd3 import lineChart
 from chartjs.views.lines import BaseLineChartView
 
 

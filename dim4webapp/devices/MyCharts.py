@@ -1,9 +1,35 @@
 from random import randint
 from django.views.generic import TemplateView
-from chartjs.views.lines import BaseLineChartView, TimeLineChartView
+from chartjs.views.lines import BaseLineChartView
 from .models import Sensor, Owner, SensorValue
 import random
 import time
+
+class TimeLineChartView(BaseLineChartView):
+    def get_context_data(self, **kwargs):
+        context = super(BaseLineChartView, self).get_context_data(**kwargs)
+        context.update({'datasets': self.get_datasets()})
+        return context
+    def get_datasets(self):
+        datasets = []
+        color_generator = self.get_colors()
+        data = self.get_data()
+        providers = self.get_providers()
+        num = len(providers)
+        for i, entry in enumerate(data):
+            color = tuple(next(color_generator))
+            dataset = {'backgroundColor': "rgba(%d, %d, %d, 0.5)" % color,
+                       'borderColor': "rgba(%d, %d, %d, 1)" % color,
+                       'pointBackgroundColor': "rgba(%d, %d, %d, 1)" % color,
+                       'pointBorderColor': "#fff",
+                       'fill': False,
+                       'lineTension': 0,
+                       'data': entry}
+            if i < num:
+                dataset['label'] = providers[i]  # series labels for Chart.js
+                dataset['name'] = providers[i]  # HighCharts may need this
+            datasets.append(dataset)
+        return datasets
 
 class LineChartJSONView(BaseLineChartView):
     sensor_id = 0

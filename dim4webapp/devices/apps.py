@@ -12,7 +12,7 @@ import numpy as np
 import scipy.cluster.hierarchy as hac
 from scipy.cluster.hierarchy import fcluster
 import pywt._dwt as dwt
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, KMeans
 
 
 class DevicesConfig(AppConfig):
@@ -104,7 +104,7 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
 
 
 class ClusterTimeSeries(CronJobBase):
-    RUN_EVERY_MINS = 60 # every 2 hours
+    RUN_EVERY_MINS = 1 # every 2 hours
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
     code = 'dim4webapp.clusterTimeSeries'    # a unique code
@@ -113,6 +113,16 @@ class ClusterTimeSeries(CronJobBase):
         timeSeries = []
         sensor_list=Sensor.objects.filter(owner=1)
         sensor_list_with_P1=[]
+        sensor_list_with_no_cluster = []
+
+        maxLen = 0
+        for sensor in sensor_list:
+            values = list(
+                SensorValue.objects.filter(sensor=sensor.id, type='P1').order_by('created').values('created', 'value'))
+            df = [float(d['value']) for d in values]
+            if len(df)>maxLen:
+                maxLen=len(df)
+
         for sensor in sensor_list:
             values = list(SensorValue.objects.filter(sensor=sensor.id, type='P1').order_by('created').values('created','value'))
             df = [float(d['value']) for d in values]
@@ -121,18 +131,25 @@ class ClusterTimeSeries(CronJobBase):
             try:
 
                 (cA, cD) = dwt.dwt(df,'db2')
-                if len(df) == 10:
+                if len(df)==maxLen and max(df)<500:
                     timeSeries.append(df)
                     sensor_list_with_P1.append(sensor)
-                    print(df)
+                else:
+                    sensor_list_with_no_cluster.append(sensor)
+
             except:
                 pass
-        db = DBSCAN(eps=5.0, min_samples=10).fit_predict(np.array(timeSeries))
+
+        db = KMeans(n_clusters=20, init="k-means++").fit_predict(np.array(timeSeries))
 
 
 
         for i,sensor in enumerate(sensor_list_with_P1):
             sensor.clusterNumber = db[i]
+            sensor.save()
+
+        for sensor in sensor_list_with_no_cluster:
+            sensor.clusterNumber = -1
             sensor.save()
 
 

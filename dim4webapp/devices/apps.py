@@ -7,10 +7,7 @@ from django.contrib.gis.geos import Point
 import asyncio
 import websockets as ws
 from django.utils import timezone
-import pandas as pd
 import numpy as np
-import scipy.cluster.hierarchy as hac
-from scipy.cluster.hierarchy import fcluster
 import pywt._dwt as dwt
 from sklearn.cluster import DBSCAN, KMeans
 

@@ -4,6 +4,12 @@
 
 {% block body_block %}
 <div id="mapid" style="height: 400px; width:100%"></div>
+
+<select id="sensor_value_selection" onchange='loadHexbin(this)'>
+{% for entry in value_type_list %}
+    <option value="{{entry}}">{{entry}}</option>
+{% endfor %}
+</select>
 <canvas id="myChart" width="500" height="200"></canvas>
 
 <div id="hovered">
@@ -35,7 +41,23 @@
     colorRange: colorRange,
     colorScaleExtent: [0,100]
 };
+var sensorValueSelection = document.getElementById("sensor_value_selection");
+function loadHexbin(d) {
 
+        $.get('/devices/api/'+d.value+'/getSensorData', function(result){
+            //onSuccess
+            alert(result);
+			var data = [];
+			jQuery.each(result['data'], function(sensor) {
+			   data.push([this.longitude, this.latitude,this.currentvalue,this.id]);
+
+
+			});
+			hexLayer.data(data);
+        });
+
+
+	}
 
     var hexLayer = L.hexbinLayer(options).addTo(mymap)
     hexLayer
@@ -126,7 +148,7 @@
 				urlIDs+= String(datum.o[3])+'&';
 			});
 		urlIDs =  urlIDs.slice(0,-1);
-        $.get('/devices/api/'+urlIDs+'/getSensorData', function(data){
+        $.get('/devices/api/'+sensorValueSelection.options[sensorValueSelection.selectedIndex].value+'/'+urlIDs+'/getSensorData', function(data){
             //onSuccess
 			config.data = data;
 			window.myLine.update();

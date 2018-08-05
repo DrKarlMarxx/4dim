@@ -13,6 +13,7 @@ urlpatterns = [
     # ex: /polls/5/results/
     path('<int:sensor_id>/value/', views.value, name='value'),
     #path('api/<int:sensor_ids>/getSensorData', views.linechart_chartjs, name='get_linechart_chartjs'),
-    path('api/<intList:sensor_ids>/getSensorData', views.linechart_chartjs, name='get_linechart_chartjs'),
+    path('api/<str:value_type>/<intList:sensor_ids>/getSensorData', views.linechart_chartjs, name='get_linechart_chartjs'),
+    path('api/<str:value_type>/getSensorData', views.getHexbinData, name='getHexbinData'),
     ]
 

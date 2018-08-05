@@ -51,6 +51,7 @@ class LineChartJSONView(BaseLineChartView):
 
 class TimeChartJSONView(TimeLineChartView):
     sensor_ids = 0
+    value_type = 'P1'
     def get_labels(self):
         """Return 7 labels for the x-axis."""
         return ["January", "February", "March", "April", "May", "June", "July"]
@@ -64,7 +65,7 @@ class TimeChartJSONView(TimeLineChartView):
         """Return 3 datasets to plot."""
         listDictList = []
         for id in self.kwargs['sensor_ids']:
-            values = list(SensorValue.objects.filter(sensor=id,type='P1').order_by('created').values('created', 'value'))
+            values = list(SensorValue.objects.filter(sensor=id,type=self.kwargs['value_type']).order_by('created').values('created', 'value'))
             timeData = [time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.mktime(d['created'].timetuple()))) for d in values]
             ydata = [float(d['value']) for d in values]
             dictList = []

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 from django_cron import CronJobBase, Schedule
-from .models import Sensor, Owner, SensorValue
+from .models import Sensor, Owner, SensorValue, WeatherData
 import json
 import urllib.request
 from django.contrib.gis.geos import Point
@@ -54,9 +54,7 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                     latitude = float(sensorData['location']['latitude']),
                     )
 
-                print('entryMade')
                 geoNamesRequestUrl = r'http://api.geonames.org/findNearbyJSON?lat='+str(sensorLatitude)+'&lng='+str(sensorLongitude)+'&username=DrKarlMarxx'
-                print(geoNamesRequestUrl)
                 try:
                     with urllib.request.urlopen(geoNamesRequestUrl) as urlJson:
                         geoNamesData = json.loads(urlJson.read())
@@ -64,17 +62,33 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                 except:
                     pass
                 sensorModel.save()
-                print(sensorModel.geom)
             else:
                 sensorModel =currentSensor[0]
-                print('existing')
             if sensorModel.id not in usedIDSet:
                 for sensorvalueList in sensorData['sensordatavalues'][:]:
                     typeFromJson = str(sensorvalueList['value_type'])
                     valueFromJson = float(sensorvalueList['value'])
                     timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
+
                     if created:
                         timestepData.save()
+                """
+                weatherDataRequestUrl = r'api.openweathermap.org/data/2.5/weather?lat='+str(sensorLatitude)+'&lon='+str(sensorLongitude)
+                with urllib.request.urlopen(weatherDataRequestUrl) as urlJson:
+                    weatherData = json.loads(urlJson.read())
+
+                weatherData, created = WeatherData.objects.get_or_create(sensorvalue_id=timestepData.id,
+                                                                         temperature=weatherData['main']['temp'],
+                                                                            humidity = weatherData['main']['humidity'],
+                                                                            pressure = weatherData['main']['pressure'],
+                                                                            temp_min = weatherData['main']['temp_min'],
+                                                                            temp_max = weatherData['main']['temp_max'],
+                                                                            wind_speed = weatherData['wind']['speed'],
+                                                                            wind_deg = weatherData['wind']['deg'],
+                                                                            rain = weatherData['rain']['3h'],
+                                                                            clouds = weatherData['clouds']['all'],
+                                                                            name = weatherData['name'])
+                """
                 usedIDSet.add(sensorModel.id)
 
         for savedSensorValue in SensorValue._meta.get_fields():

@@ -10,6 +10,7 @@ from django_ajax.decorators import ajax
 from django.core.serializers import serialize
 import datetime
 import time
+import json
 from chartjs.views.lines import BaseLineChartView
 
 
@@ -36,17 +37,38 @@ def detail(request, owner_id):
 def detailHex(request, owner_id):
     owner_sensor_json = serialize('geojson',Sensor.objects.filter(owner=owner_id), geometry_field='point',fields=('location',))
     owner_sensor_list = Sensor.objects.filter(owner=owner_id)
+    value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
     sensor_list = []
     for sensorInstance in owner_sensor_list:
         try:
-            sensorInstance.currentvalue = float(SensorValue.objects.filter(sensor=sensorInstance.id,type='P1').last().value)
+            sensorInstance.currentvalue = float(SensorValue.objects.filter(sensor=sensorInstance.id,type='temperature').last().value)
             sensor_list.append(sensorInstance)
         except:
             pass
     template = loader.get_template('devices/detailHex.html')
-    context = {'owner_sensor_list': sensor_list}
+    context = {'owner_sensor_list': sensor_list, 'value_type_list': value_type_list}
 
     return HttpResponse(template.render(context,request))
+
+
+def getHexbinData(request, value_type):
+    result = dict()
+    sensor_list = []
+    owner_id=1
+    owner_sensor_list = Sensor.objects.filter(owner=owner_id)
+    for sensorInstance in owner_sensor_list:
+        try:
+            values = dict()
+            sensorInstance.currentvalue = float(SensorValue.objects.filter(sensor=sensorInstance.id, type=value_type).last().value)
+            values['longitude']=sensorInstance.longitude
+            values['latitude']=sensorInstance.latitude
+            values['id']=sensorInstance.id
+            values['currentvalue']=sensorInstance.currentvalue
+            sensor_list.append(values)
+        except:
+            pass
+    result['data'] = sensor_list
+    return JsonResponse(result, safe=False)
 
 
 def get_linechart(request,sensor_id):
@@ -165,7 +187,7 @@ def get_linechart_chartjs(request, sensor_ids):
     return line_chart_json
 
 
-linechart_chartjs = TimeChartJSONView.as_view(sensor_ids=0)
+linechart_chartjs = TimeChartJSONView.as_view(sensor_ids=0,value_type=['P1'])
 
 @ajax
 def getSensorData(request, sensor_id):

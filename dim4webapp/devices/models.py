@@ -45,3 +45,19 @@ class SensorValue(TimeStampedModel):
     type = models.CharField(max_length=100)
 
 
+class WeatherData(TimeStampedModel):
+
+    created = models.DateTimeField(default=timezone.now())
+    sensorvalue = models.ForeignKey(SensorValue, on_delete=models.CASCADE)
+    temperature = models.FloatField()
+    humidity = models.FloatField()
+    pressure = models.FloatField()
+    temp_min = models.FloatField()
+    temp_max = models.FloatField()
+    wind_speed = models.FloatField()
+    wind_deg = models.FloatField()
+    rain = models.FloatField()
+    clouds = models.FloatField()
+    name = models.CharField(max_length=100)
+
+

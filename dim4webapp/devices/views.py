@@ -14,7 +14,7 @@ import json
 from chartjs.views.lines import BaseLineChartView
 
 
-from .MyCharts import LineChartJSONView, TimeChartJSONView
+from .MyCharts import LineChartJSONView, TimeChartJSONView, TimeChartClusterJSONView
 
 
 def index(request):
@@ -38,6 +38,8 @@ def detailHex(request, owner_id):
     owner_sensor_json = serialize('geojson',Sensor.objects.filter(owner=owner_id), geometry_field='point',fields=('location',))
     owner_sensor_list = Sensor.objects.filter(owner=owner_id)
     value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
+    cluster_list = Sensor.objects.order_by('clusterNumber').values_list('clusterNumber', flat=True).distinct()
+
     sensor_list = []
     for sensorInstance in owner_sensor_list:
         try:
@@ -46,7 +48,7 @@ def detailHex(request, owner_id):
         except:
             pass
     template = loader.get_template('devices/detailHex.html')
-    context = {'owner_sensor_list': sensor_list, 'value_type_list': value_type_list}
+    context = {'owner_sensor_list': sensor_list, 'value_type_list': value_type_list,'cluster_list':cluster_list}
 
     return HttpResponse(template.render(context,request))
 
@@ -188,6 +190,7 @@ def get_linechart_chartjs(request, sensor_ids):
 
 
 linechart_chartjs = TimeChartJSONView.as_view(sensor_ids=0,value_type=['P1'])
+linechart_chartjs_cluster = TimeChartClusterJSONView.as_view(cluster_id=0,value_type='P1')
 
 @ajax
 def getSensorData(request, sensor_id):

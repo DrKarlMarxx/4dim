@@ -15,5 +15,8 @@ urlpatterns = [
     #path('api/<int:sensor_ids>/getSensorData', views.linechart_chartjs, name='get_linechart_chartjs'),
     path('api/<str:value_type>/<intList:sensor_ids>/getSensorData', views.linechart_chartjs, name='get_linechart_chartjs'),
     path('api/<str:value_type>/getSensorData', views.getHexbinData, name='getHexbinData'),
-    ]
+    path('api/<int:cluster_id>/getClusterSensorData', views.linechart_chartjs_cluster,
+         name='get_linechart_chartjs_cluster'),
+
+]
 

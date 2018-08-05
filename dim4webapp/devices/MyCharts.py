@@ -77,3 +77,34 @@ class TimeChartJSONView(TimeLineChartView):
             listDictList.append(dictList)
 
         return random.sample(listDictList,min(len(listDictList),20))
+
+
+class TimeChartClusterJSONView(TimeLineChartView):
+    cluster_id = 0
+    value_type = 'P1'
+    def get_labels(self):
+        """Return 7 labels for the x-axis."""
+        return ["January", "February", "March", "April", "May", "June", "July"]
+
+
+    def get_providers(self):
+        """Return names of datasets."""
+        return [str(d.id) for d in Sensor.objects.filter(clusterNumber=self.kwargs['cluster_id'])]
+
+    def get_data(self):
+        """Return 3 datasets to plot."""
+        listDictList = []
+        sensor_list = Sensor.objects.filter(clusterNumber=self.kwargs['cluster_id'])
+        for sensor in sensor_list:
+            values = list(SensorValue.objects.filter(sensor=sensor.id,type=self.value_type).order_by('created').values('created', 'value'))
+            timeData = [time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.mktime(d['created'].timetuple()))) for d in values]
+            ydata = [float(d['value']) for d in values]
+            dictList = []
+            for i in range(len(timeData)):
+                dict =  {}
+                dict["x"] = timeData[i]
+                dict["y"] = ydata[i]
+                dictList.append(dict)
+            listDictList.append(dictList)
+
+        return random.sample(listDictList,min(len(listDictList),20))

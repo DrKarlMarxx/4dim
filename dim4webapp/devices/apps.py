@@ -7,6 +7,13 @@ from django.contrib.gis.geos import Point
 import asyncio
 import websockets as ws
 from django.utils import timezone
+import pandas as pd
+import numpy as np
+import scipy.cluster.hierarchy as hac
+from scipy.cluster.hierarchy import fcluster
+import pywt._dwt as dwt
+from sklearn.cluster import DBSCAN
+
 
 class DevicesConfig(AppConfig):
     name = 'devices'
@@ -94,6 +101,41 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
         for savedSensorValue in SensorValue._meta.get_fields():
             if (timezone.now()-savedSensorValue.Created).days > 7:
                 savedSensorValue.delete()
+
+
+class ClusterTimeSeries(CronJobBase):
+    RUN_EVERY_MINS = 1 # every 2 hours
+
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    code = 'dim4webapp.clusterTimeSeries'    # a unique code
+
+    def do(self):
+        timeSeries = []
+        sensor_list=Sensor.objects.filter(owner=1)
+        sensor_list_with_P1=[]
+        for sensor in sensor_list:
+            values = list(SensorValue.objects.filter(sensor=sensor.id, type='P1').order_by('created').values('created','value'))
+            df = [float(d['value']) for d in values]
+
+
+            try:
+
+                (cA, cD) = dwt.dwt(df,'db2')
+                if len(df) == 10:
+                    timeSeries.append(df)
+                    sensor_list_with_P1.append(sensor)
+                    print(df)
+            except:
+                pass
+        db = DBSCAN(eps=5.0, min_samples=10).fit_predict(np.array(timeSeries))
+
+
+
+        for i,sensor in enumerate(sensor_list_with_P1):
+            sensor.clusterNumber = db[i]
+            sensor.save()
+
+
 
 
 class ReadFromLoriotWebSocket(CronJobBase):

@@ -12,11 +12,13 @@
 </select>
 <canvas id="myChart" width="500" height="200"></canvas>
 
-<div id="hovered">
-	<label>Hovered: </label>
-	<span class="count"></span>
-</div>
+<select id="clusterNumber" onchange='showCluster(this)'>
+{% for entry in cluster_list %}
+    <option value="{{entry}}">{{entry}}</option>
+{% endfor %}
+</select>
 
+<canvas id="myClusterChart" width="500" height="200"></canvas>
 
 <script type="text/javascript">
 
@@ -108,6 +110,40 @@ function loadHexbin(d) {
 		},
 	}
 	window.myLine=new Chart(ctx, config);
+
+
+
+	var ctxCluster = $("#myClusterChart").get(0).getContext("2d");
+	var configCluster = {
+		type: 'line',
+		 data: '',
+		 options: {
+			responsive: true,
+			title: {
+				text: 'Chart.js Time Scale'
+			},
+			scales: {
+				xAxes: [{
+					type: 'time',
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Date'
+					}
+				}],
+				yAxes: [{
+					scaleLabel: {
+						display: true,
+						labelString: 'value'
+					}
+				}]
+			},
+		},
+	}
+	window.myLineCluster=new Chart(ctxCluster, configCluster);
+
+
+
 	function calculateMean(d) {
 		var sum = 0;
 		d.forEach(function (datum) {
@@ -154,6 +190,20 @@ function loadHexbin(d) {
 			window.myLine.update();
         });
 	}
+
+
+	function showCluster(d) {
+
+		var timeFormat = 'YYYY-MM-DD HH:mm:ss';
+
+        $.get('/devices/api/'+d.value+'/getClusterSensorData', function(data){
+            //onSuccess
+			configCluster.data = data;
+			window.myLineCluster.update();
+        });
+	}
+
+
 
 
 </script>

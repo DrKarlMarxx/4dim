@@ -23,6 +23,7 @@ class Sensor(gisModels.Model):
     objects = GeoManager()
     longitude = gisModels.FloatField()
     latitude = gisModels.FloatField()
+    clusterNumber = gisModels.IntegerField(default=0)
 
     def __repr__(self):
         return 'ldi_number' + str(self.ldi_number)

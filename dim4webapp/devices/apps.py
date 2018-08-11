@@ -125,19 +125,22 @@ class ClusterTimeSeries(CronJobBase):
             dataDict['value'].append(0)
             dataDict['created'].insert(0,timezone.now()-datetime.timedelta(days=14))
             dataDict['value'].insert(0,0)
-            series = pd.Series(dataDict['value'],index=pd.DatetimeIndex(dataDict['created']))
-            converted = series.asfreq('60Min',method='pad')
+            if max(dataDict['value'])<500:
+                series = pd.Series(dataDict['value'],index=pd.DatetimeIndex(dataDict['created']))
+                converted = series.asfreq('60Min',method='pad')
 
 
-            coeff = pywt.wavedec(converted,'db2', mode='per')
-            sigma = np.std(coeff[-1])
-            uthresh = sigma * np.sqrt(2 * np.log(len(converted)))
-            denoised = coeff[:]
-            denoised[1:] = (pywt.threshold(i, value=uthresh) for i in denoised[1:])
-            signal = pywt.waverec(denoised, 'db2', mode='per')
+                coeff = pywt.wavedec(converted,'db2', mode='per')
+                sigma = np.std(coeff[-1])
+                uthresh = sigma * np.sqrt(2 * np.log(len(converted)))
+                denoised = coeff[:]
+                denoised[1:] = (pywt.threshold(i, value=uthresh) for i in denoised[1:])
+                signal = pywt.waverec(denoised, 'db2', mode='per')
 
-            timeSeries.append(signal)
-            sensor_list_with_P1.append(sensor)
+                timeSeries.append(signal)
+                sensor_list_with_P1.append(sensor)
+            else:
+                sensor_list_with_no_cluster.append(sensor)
 
 
         db = KMeans(n_clusters=20, init="k-means++").fit_predict(np.array(timeSeries))

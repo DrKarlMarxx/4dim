@@ -8,8 +8,11 @@ import asyncio
 import websockets as ws
 from django.utils import timezone
 import numpy as np
-import pywt._dwt as dwt
 from sklearn.cluster import DBSCAN, KMeans
+import pywt
+import datetime
+import pandas as pd
+
 
 
 class DevicesConfig(AppConfig):
@@ -107,35 +110,35 @@ class ClusterTimeSeries(CronJobBase):
     code = 'dim4webapp.clusterTimeSeries'    # a unique code
 
     def do(self):
+
         timeSeries = []
         sensor_list=Sensor.objects.filter(owner=1)
         sensor_list_with_P1=[]
         sensor_list_with_no_cluster = []
 
-        maxLen = 0
         for sensor in sensor_list:
-            values = list(
-                SensorValue.objects.filter(sensor=sensor.id, type='P1').order_by('created').values('created', 'value'))
-            df = [float(d['value']) for d in values]
-            if len(df)>maxLen:
-                maxLen=len(df)
-
-        for sensor in sensor_list:
+            dataDict = {}
             values = list(SensorValue.objects.filter(sensor=sensor.id, type='P1').order_by('created').values('created','value'))
-            df = [float(d['value']) for d in values]
+            dataDict['value'] = [float(d['value']) for d in values]
+            dataDict['created'] = [d['created'] for d in values]
+            dataDict['created'].append(timezone.now())
+            dataDict['value'].append(0)
+            dataDict['created'].insert(0,timezone.now()-datetime.timedelta(days=14))
+            dataDict['value'].insert(0,0)
+            series = pd.Series(dataDict['value'],index=pd.DatetimeIndex(dataDict['created']))
+            converted = series.asfreq('60Min',method='pad')
 
 
-            try:
+            coeff = pywt.wavedec(converted,'db2', mode='per')
+            sigma = np.std(coeff[-1])
+            uthresh = sigma * np.sqrt(2 * np.log(len(converted)))
+            denoised = coeff[:]
+            denoised[1:] = (pywt.threshold(i, value=uthresh) for i in denoised[1:])
+            signal = pywt.waverec(denoised, 'db2', mode='per')
 
-                (cA, cD) = dwt.dwt(df,'db2')
-                if len(df)==maxLen and max(df)<500:
-                    timeSeries.append(df)
-                    sensor_list_with_P1.append(sensor)
-                else:
-                    sensor_list_with_no_cluster.append(sensor)
+            timeSeries.append(signal)
+            sensor_list_with_P1.append(sensor)
 
-            except:
-                pass
 
         db = KMeans(n_clusters=20, init="k-means++").fit_predict(np.array(timeSeries))
 
@@ -148,6 +151,9 @@ class ClusterTimeSeries(CronJobBase):
         for sensor in sensor_list_with_no_cluster:
             sensor.clusterNumber = -1
             sensor.save()
+
+        np.savetxt('LDIDaten.txt', np.array(timeSeries))
+        print('complete')
 
 
 

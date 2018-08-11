@@ -99,7 +99,7 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                 usedIDSet.add(sensorModel.id)
 
         for savedSensorValue in SensorValue._meta.get_fields():
-            if (timezone.now()-savedSensorValue.Created).days >= 7:
+            if (timezone.now()-savedSensorValue.created).days >= 7:
                 savedSensorValue.delete()
 
 
@@ -110,8 +110,8 @@ class ClusterTimeSeries(CronJobBase):
     code = 'dim4webapp.clusterTimeSeries'    # a unique code
 
     def do(self):
-        for savedSensorValue in SensorValue._meta.get_fields():
-            if (timezone.now()-savedSensorValue.Created).days >= 7:
+        for savedSensorValue in SensorValue.objects.all():
+            if (timezone.now()-savedSensorValue.created).days >= 7:
                 savedSensorValue.delete()
         timeSeries = []
         sensor_list=Sensor.objects.filter(owner=1)

@@ -99,7 +99,7 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                 usedIDSet.add(sensorModel.id)
 
         for savedSensorValue in SensorValue._meta.get_fields():
-            if (timezone.now()-savedSensorValue.Created).days > 7:
+            if (timezone.now()-savedSensorValue.Created).days >= 7:
                 savedSensorValue.delete()
 
 
@@ -110,7 +110,9 @@ class ClusterTimeSeries(CronJobBase):
     code = 'dim4webapp.clusterTimeSeries'    # a unique code
 
     def do(self):
-
+        for savedSensorValue in SensorValue._meta.get_fields():
+            if (timezone.now()-savedSensorValue.Created).days >= 7:
+                savedSensorValue.delete()
         timeSeries = []
         sensor_list=Sensor.objects.filter(owner=1)
         sensor_list_with_P1=[]
@@ -123,7 +125,7 @@ class ClusterTimeSeries(CronJobBase):
             dataDict['created'] = [d['created'] for d in values]
             dataDict['created'].append(timezone.now())
             dataDict['value'].append(0)
-            dataDict['created'].insert(0,timezone.now()-datetime.timedelta(days=14))
+            dataDict['created'].insert(0,timezone.now()-datetime.timedelta(days=7))
             dataDict['value'].insert(0,0)
             if max(dataDict['value'])<500:
                 series = pd.Series(dataDict['value'],index=pd.DatetimeIndex(dataDict['created']))
@@ -143,7 +145,8 @@ class ClusterTimeSeries(CronJobBase):
                 sensor_list_with_no_cluster.append(sensor)
 
 
-        db = KMeans(n_clusters=20, init="k-means++").fit_predict(np.array(timeSeries))
+        #db = KMeans(n_clusters=20, init="k-means++").fit_predict(np.array(timeSeries))
+        db = DBSCAN(eps=5).fit_predict(np.array(timeSeries))
 
 
 

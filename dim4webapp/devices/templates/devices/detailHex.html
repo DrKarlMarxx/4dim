@@ -3,7 +3,7 @@
 {% load staticfiles %}
 
 {% block body_block %}
-<div id="mapid" style="height: 400px; width:100%"></div>
+<div id="mapid" style="height: 50%; width:100%"></div>
 
 <select id="sensor_value_selection" onchange='loadHexbin(this)' onload='loadHexbin(this)'>
 {% for entry in value_type_list %}
@@ -36,8 +36,10 @@
 		var colorRange = [ 'green', 'yellow', 'red' ];
 		// Create the legend to illustrate the color scale being divergent
     var options = {
-    radius : 12,
-    radiusRange: [ 12, 20 ],
+
+    radiusRange: [ 20, 30 ],
+    radius: 30,
+    radiusScaleExtent: [1,100],
     opacity: 0.5,
     duration: 500,
     colorRange: colorRange,
@@ -63,13 +65,13 @@ function loadHexbin(d) {
 
     var hexLayer = L.hexbinLayer(options).addTo(mymap)
     hexLayer
-  .radiusRange([6, 11])
+  .radiusRange([20, 30])
 	.lng(function(d) { return d[0]; })
   .lat(function(d) { return d[1]; })
   .colorValue(function(d){
                     return calculateMean(d);
                 })
-  .radiusValue(function(d) { return d.length; })
+  .radiusValue(function(d) { return d.length*3; })
   .hoverHandler(L.HexbinHoverHandler.resizeFill());
 
 	// Set up hover handler

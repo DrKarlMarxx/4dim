@@ -10,15 +10,7 @@
     <option value="{{entry}}">{{entry}}</option>
 {% endfor %}
 </select>
-<canvas id="myChart" width="500" height="200"></canvas>
-
-<select id="clusterNumber" onchange='showCluster(this)'>
-{% for entry in cluster_list %}
-    <option value="{{entry}}">{{entry}}</option>
-{% endfor %}
-</select>
-
-<canvas id="myClusterChart" width="500" height="200"></canvas>
+<canvas id="myChart" width="1000" height="500"></canvas>
 
 <script type="text/javascript">
 
@@ -98,7 +90,7 @@ function loadHexbin(d) {
 					type: 'time',
 					display: true,
 					scaleLabel: {
-						display: true,
+						display: false,
 						labelString: 'Date'
 					}
 				}],

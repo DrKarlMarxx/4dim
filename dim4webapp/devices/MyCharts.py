@@ -4,6 +4,8 @@ from chartjs.views.lines import BaseLineChartView
 from .models import Sensor, Owner, SensorValue
 import random
 import time
+from django.utils import timezone
+from datetime import timedelta
 
 class TimeLineChartView(BaseLineChartView):
     def get_context_data(self, **kwargs):
@@ -65,7 +67,7 @@ class TimeChartJSONView(TimeLineChartView):
         """Return 3 datasets to plot."""
         listDictList = []
         for id in self.kwargs['sensor_ids']:
-            values = list(SensorValue.objects.filter(sensor=id,type=self.kwargs['value_type']).order_by('created').values('created', 'value'))
+            values = list(SensorValue.objects.filter(sensor=id,type=self.kwargs['value_type'],created__range=[timezone.now()-timedelta(days=7),timezone.now()]).order_by('created').values('created', 'value'))
             timeData = [time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.mktime(d['created'].timetuple()))) for d in values]
             ydata = [float(d['value']) for d in values]
             dictList = []

@@ -78,7 +78,7 @@ class TimeChartJSONView(TimeLineChartView):
                 dictList.append(dict)
             listDictList.append(dictList)
 
-        return random.sample(listDictList,min(len(listDictList),20))
+        return random.sample(listDictList,min(len(listDictList),10))
 
 
 class TimeChartClusterJSONView(TimeLineChartView):

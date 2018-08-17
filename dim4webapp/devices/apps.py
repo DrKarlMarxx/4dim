@@ -104,7 +104,7 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
 
 
 class ClusterTimeSeries(CronJobBase):
-    RUN_EVERY_MINS = 1 # every 2 hours
+    RUN_EVERY_MINS = 60*24 # every 2 hours
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
     code = 'dim4webapp.clusterTimeSeries'    # a unique code
@@ -125,7 +125,7 @@ class ClusterTimeSeries(CronJobBase):
             dataDict['created'] = [d['created'] for d in values]
             dataDict['created'].append(timezone.now())
             dataDict['value'].append(0)
-            dataDict['created'].insert(0,timezone.now()-datetime.timedelta(days=7))
+            dataDict['created'].insert(0,timezone.now()-datetime.timedelta(days=8))
             dataDict['value'].insert(0,0)
             if max(dataDict['value'])<500:
                 series = pd.Series(dataDict['value'],index=pd.DatetimeIndex(dataDict['created']))

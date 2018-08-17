@@ -203,3 +203,7 @@ def value(request, sensor_id):
     context = {'value_list': value_list}
     return HttpResponse(template.render(context,request))
 
+def getloaderio(request):
+    content = 'loaderio-e6cf2c0cf1b08e7744911746b57b6f5d'
+    return HttpResponse(content, content_type='text/plain')
+

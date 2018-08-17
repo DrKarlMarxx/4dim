@@ -46,7 +46,7 @@
 var sensorValueSelection = document.getElementById("sensor_value_selection");
 function loadHexbin(d) {
 
-        $.get('/devices/api/'+d.value+'/getSensorData', function(result){
+        $.get('/api/'+d.value+'/getSensorData', function(result){
             //onSuccess
             alert(result);
 			var data = [];
@@ -166,7 +166,7 @@ function loadHexbin(d) {
     hexLayer.data(data);
 
 	function showData(marker_id) {
-        ajaxGet('/devices/api/'+String(marker_id)+'/getSensorData', function(content){
+        ajaxGet('/api/'+String(marker_id)+'/getSensorData', function(content){
             //onSuccess
             var ctx = $("#myChart").get(0).getContext("2d");
                 new Chart(ctx, {
@@ -184,7 +184,7 @@ function loadHexbin(d) {
 				urlIDs+= String(datum.o[3])+'&';
 			});
 		urlIDs =  urlIDs.slice(0,-1);
-        $.get('/devices/api/'+sensorValueSelection.options[sensorValueSelection.selectedIndex].value+'/'+urlIDs+'/getSensorData', function(data){
+        $.get('/api/'+sensorValueSelection.options[sensorValueSelection.selectedIndex].value+'/'+urlIDs+'/getSensorData', function(data){
             //onSuccess
 			config.data = data;
 			window.myLine.update();
@@ -196,7 +196,7 @@ function loadHexbin(d) {
 
 		var timeFormat = 'YYYY-MM-DD HH:mm:ss';
 
-        $.get('/devices/api/'+d.value+'/getClusterSensorData', function(data){
+        $.get('/api/'+d.value+'/getClusterSensorData', function(data){
             //onSuccess
 			configCluster.data = data;
 			window.myLineCluster.update();

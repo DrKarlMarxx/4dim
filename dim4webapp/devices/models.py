@@ -45,6 +45,13 @@ class SensorValue(TimeStampedModel):
     value = models.FloatField()
     type = models.CharField(max_length=100)
 
+class CurrentSensorValue(TimeStampedModel):
+
+    created = models.DateTimeField(default=timezone.now())
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    value = models.FloatField()
+    type = models.CharField(max_length=100)
+
 
 class WeatherData(TimeStampedModel):
 

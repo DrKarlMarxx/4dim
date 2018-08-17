@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Sensor, Owner, SensorValue
+from .models import Sensor, Owner, SensorValue, CurrentSensorValue
 from django.template import loader
 from django.template.loader import render_to_string
 from django.http import JsonResponse
@@ -35,20 +35,13 @@ def detail(request, owner_id):
 
 
 def detailHex(request, owner_id):
-    owner_sensor_json = serialize('geojson',Sensor.objects.filter(owner=owner_id), geometry_field='point',fields=('location',))
-    owner_sensor_list = Sensor.objects.filter(owner=owner_id)
+
     value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
     cluster_list = Sensor.objects.order_by('clusterNumber').values_list('clusterNumber', flat=True).distinct()
 
-    sensor_list = []
-    for sensorInstance in owner_sensor_list:
-        try:
-            sensorInstance.currentvalue = float(SensorValue.objects.filter(sensor=sensorInstance.id,type='temperature').last().value)
-            sensor_list.append(sensorInstance)
-        except:
-            pass
+
     template = loader.get_template('devices/detailHex.html')
-    context = {'owner_sensor_list': sensor_list, 'value_type_list': value_type_list,'cluster_list':cluster_list}
+    context = {'value_type_list': value_type_list,'cluster_list':cluster_list}
 
     return HttpResponse(template.render(context,request))
 
@@ -61,11 +54,31 @@ def getHexbinData(request, value_type):
     for sensorInstance in owner_sensor_list:
         try:
             values = dict()
-            sensorInstance.currentvalue = float(SensorValue.objects.filter(sensor=sensorInstance.id, type=value_type).last().value)
+            sensorInstance.currentvalue = float(CurrentSensorValue.objects.filter(sensor=sensorInstance.id, type=value_type)[0].value)
             values['longitude']=sensorInstance.longitude
             values['latitude']=sensorInstance.latitude
             values['id']=sensorInstance.id
             values['currentvalue']=sensorInstance.currentvalue
+            sensor_list.append(values)
+        except:
+            pass
+    result['data'] = sensor_list
+    return JsonResponse(result, safe=False)
+
+
+def getHexbinData2(request, value_type):
+    result = dict()
+    sensor_list = []
+    owner_id=1
+    sensor_data_list = CurrentSensorValue.objects.filter(type=value_type)
+    for sensorValueInstance in sensor_data_list:
+        try:
+            values = dict()
+            values['currentvalue'] = float(sensorValueInstance.value)
+            sensorInstance = Sensor.objects.filter(id=sensorValueInstance.sensor_id)[0]
+            values['longitude']=sensorInstance.longitude
+            values['latitude']=sensorInstance.latitude
+            values['id']=sensorInstance.id
             sensor_list.append(values)
         except:
             pass

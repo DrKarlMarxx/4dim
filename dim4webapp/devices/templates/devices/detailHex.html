@@ -5,7 +5,7 @@
 {% block body_block %}
 <div id="mapid" style="height: 400px; width:100%"></div>
 
-<select id="sensor_value_selection" onchange='loadHexbin(this)'>
+<select id="sensor_value_selection" onchange='loadHexbin(this)' onload='loadHexbin(this)'>
 {% for entry in value_type_list %}
     <option value="{{entry}}">{{entry}}</option>
 {% endfor %}
@@ -48,7 +48,7 @@ function loadHexbin(d) {
 
         $.get('/api/'+d.value+'/getSensorData', function(result){
             //onSuccess
-            alert(result);
+
 			var data = [];
 			jQuery.each(result['data'], function(sensor) {
 			   data.push([this.longitude, this.latitude,this.currentvalue,this.id]);
@@ -159,11 +159,6 @@ function loadHexbin(d) {
 		}
     var i=0;
 
-    var data = [];
-    {% for sensor in owner_sensor_list %}
-       data.push([{{ sensor.longitude }}, {{ sensor.latitude }},{{sensor.currentvalue}},{{sensor.id}}]);
-    {% endfor %}
-    hexLayer.data(data);
 
 	function showData(marker_id) {
         ajaxGet('/api/'+String(marker_id)+'/getSensorData', function(content){

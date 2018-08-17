@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 from django_cron import CronJobBase, Schedule
-from .models import Sensor, Owner, SensorValue, WeatherData
+from .models import Sensor, Owner, SensorValue, WeatherData, CurrentSensorValue
 import json
 import urllib.request
 from django.contrib.gis.geos import Point
@@ -76,9 +76,16 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                     typeFromJson = str(sensorvalueList['value_type'])
                     valueFromJson = float(sensorvalueList['value'])
                     timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
-
+                    runningCurrentSensorValue = CurrentSensorValue.objects.filter(sensor_id=sensorModel.id)
+                    if runningCurrentSensorValue.count()==0:
+                        currentSensorValue, created = CurrentSensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
+                    else:
+                        currentSensorValue = runningCurrentSensorValue[0]
+                        currentSensorValue.value = valueFromJson
+                    currentSensorValue.save()
                     if created:
                         timestepData.save()
+
                 """
                 weatherDataRequestUrl = r'api.openweathermap.org/data/2.5/weather?lat='+str(sensorLatitude)+'&lon='+str(sensorLongitude)
                 with urllib.request.urlopen(weatherDataRequestUrl) as urlJson:

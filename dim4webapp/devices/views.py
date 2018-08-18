@@ -40,7 +40,7 @@ def detailHex(request, owner_id):
     cluster_list = Sensor.objects.order_by('clusterNumber').values_list('clusterNumber', flat=True).distinct()
 
 
-    template = loader.get_template('devices/detailHex.html')
+    template = loader.get_template('devices/detailBootstrap.html')
     context = {'value_type_list': value_type_list,'cluster_list':cluster_list}
 
     return HttpResponse(template.render(context,request))

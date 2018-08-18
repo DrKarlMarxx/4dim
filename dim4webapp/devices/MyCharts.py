@@ -25,6 +25,7 @@ class TimeLineChartView(BaseLineChartView):
                        'pointBackgroundColor': "rgba(%d, %d, %d, 1)" % color,
                        'pointBorderColor': "#fff",
                        'fill': False,
+                        'pointRadius': 0,
                        'lineTension': 0,
                        'data': entry}
             if i < num:

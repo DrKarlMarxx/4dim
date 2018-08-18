@@ -12,6 +12,11 @@ import datetime
 import time
 import json
 from chartjs.views.lines import BaseLineChartView
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+
+import json
+import urllib.request
 
 
 from .MyCharts import LineChartJSONView, TimeChartJSONView, TimeChartClusterJSONView
@@ -83,6 +88,32 @@ def getHexbinData2(request, value_type):
         except:
             pass
     result['data'] = sensor_list
+    return JsonResponse(result, safe=False)
+
+
+def getClosestSensorData(request, value_type,longitude,latitude):
+    result = dict()
+    longitude = float(longitude)
+    latitude = float(latitude)
+    sensor_id_dict = CurrentSensorValue.objects.filter(type=value_type).values('sensor_id')
+    sensor_id_list = [d['sensor_id'] for d in sensor_id_dict]
+    base_point = Point(longitude,latitude,srid =4326)
+    try:
+        closestSensor = Sensor.objects.filter(id__in=sensor_id_list).annotate(distance=Distance('geom', base_point)).order_by('distance').first()
+        result['distance'] = int(closestSensor.distance.m)
+        result['data'] = CurrentSensorValue.objects.filter(sensor_id = closestSensor.id)[0].value
+    except:
+        result['distance'] = 'not found'
+        result['data'] = 'not found'
+    geoNamesRequestUrl = r'http://api.geonames.org/findNearbyJSON?lat=' + str(latitude) + '&lng=' + str(
+        longitude) + '&username=DrKarlMarxx'
+    try:
+        with urllib.request.urlopen(geoNamesRequestUrl) as urlJson:
+            geoNamesData = json.loads(urlJson.read())
+        result['name'] = geoNamesData["geonames"][0]["toponymName"]
+    except:
+        result['name'] = 'unknown'
+
     return JsonResponse(result, safe=False)
 
 

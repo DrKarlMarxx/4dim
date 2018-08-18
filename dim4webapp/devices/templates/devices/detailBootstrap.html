@@ -25,24 +25,21 @@
 <div class="container" style="margin-top:30px">
   <div class="row">
     <div class="col-sm-4">
-      <h2>About Me</h2>
-      <h5>Photo of me:</h5>
-      <div class="fakeimg">Fake Image</div>
-      <p>Some text about me in culpa qui officia deserunt mollit anim..</p>
-      <h3>Some Links</h3>
-      <p>Lorem ipsum dolor sit ame.</p>
+      <h2>Current Air Quality</h2>
+      <h5>Your Location:</h5>
+      <p id="pName">Unknown location</p>
+        <h5>Distance to next sensor:</h5>
+      <p id="pDistance">Unknown Value</p>
+      <h5>PM10-Value:</h5>
+      <p id="pPM10Value">Unknown Value</p>
+        <h5>PM2.5-Value:</h5>
+      <p id="pPM25Value">Unknown Value</p>
       <ul class="nav nav-pills flex-column">
         <li class="nav-item">
-          <a class="nav-link active" href="#">Active</a>
+          <a class="nav-link" href="https://en.wikipedia.org/wiki/Particulates">Particulate Matter</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link disabled" href="#">Disabled</a>
+          <a class="nav-link" href="https://en.wikipedia.org/wiki/Air_pollution">Air pollution</a>
         </li>
       </ul>
       <hr class="d-sm-none">
@@ -88,6 +85,18 @@
         .bindPopup("You are within " + radius + " meters from this point");
 
     L.circle(e.latlng, radius).addTo(mymap);
+
+    $.get('/api/P1/'+String(e.longitude)+'/'+String(e.latitude)+'/getClosestSensorData', function(result){
+            //onSuccess
+            $('#pName').text(result['name'])
+            $('#pPM10Value').text(result['data']+' \u03BC'+'g/m3')
+            $('#pDistance').text(result['distance']+' m')
+    });
+
+    $.get('/api/P2/'+String(e.longitude)+'/'+String(e.latitude)+'/getClosestSensorData', function(result){
+            //onSuccess
+            $('#pPM25Value').text(result['data']+' \u03BC'+'g/m3')
+    });
 }
 
 mymap.on('locationfound', onLocationFound);

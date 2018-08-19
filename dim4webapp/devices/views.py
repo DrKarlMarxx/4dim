@@ -99,8 +99,10 @@ def getClosestSensorData(request, value_type,longitude,latitude):
     sensor_id_dict = CurrentSensorValue.objects.filter(type=value_type).values('sensor_id')
     sensor_id_list = [d['sensor_id'] for d in sensor_id_dict]
     base_point = Point(longitude,latitude,srid =4326)
+    result['owner']=''
     try:
         closestSensor = Sensor.objects.filter(id__in=sensor_id_list).annotate(distance=Distance('geom', base_point)).order_by('distance').first()
+        result['owner'] = Owner.objects.filter(id=closestSensor.owner_id)[0].name
         result['distance'] = int(closestSensor.distance.m)
         result['data'] = CurrentSensorValue.objects.filter(sensor_id = closestSensor.id)[0].value
     except:

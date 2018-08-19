@@ -27,13 +27,15 @@
     <div class="col-sm-4">
       <h2>Current Air Quality</h2>
       <h5>Your Location:</h5>
-      <p id="pName">Unknown location</p>
+      <p id="pName">Loading</p>
         <h5>Distance to next sensor:</h5>
-      <p id="pDistance">Unknown Value</p>
+      <p id="pDistance">Loading</p>
+      <h5>Sensor owner:</h5>
+      <p id="pOwner">Loading</p>
       <h5>PM10-Value:</h5>
-      <p id="pPM10Value">Unknown Value</p>
+      <p id="pPM10Value">Loading</p>
         <h5>PM2.5-Value:</h5>
-      <p id="pPM25Value">Unknown Value</p>
+      <p id="pPM25Value">Loading</p>
       <ul class="nav nav-pills flex-column">
         <li class="nav-item">
           <a class="nav-link" href="https://en.wikipedia.org/wiki/Particulates">Particulate Matter</a>
@@ -90,7 +92,8 @@
             //onSuccess
             $('#pName').text(result['name'])
             $('#pPM10Value').text(result['data']+' \u03BC'+'g/m3')
-            $('#pDistance').text(result['distance']+' m')
+            $('#pDistance').text(result['distance']+' m ')
+            $('#pOwner').text(result['owner'])
     });
 
     $.get('/api/P2/'+String(e.longitude)+'/'+String(e.latitude)+'/getClosestSensorData', function(result){

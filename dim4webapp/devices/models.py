@@ -17,7 +17,7 @@ class Owner(models.Model):
 class Sensor(gisModels.Model):
     owner = gisModels.ForeignKey(Owner, on_delete=models.CASCADE)
     location_number = gisModels.CharField(max_length=200)
-    ldi_number = gisModels.IntegerField()
+    ldi_number = gisModels.BigIntegerField(max_length=200)
     geom = gisModels.PointField(srid=4326)
     location = gisModels.CharField(max_length=200)
     objects = GeoManager()

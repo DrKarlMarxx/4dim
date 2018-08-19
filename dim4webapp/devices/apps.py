@@ -179,47 +179,83 @@ class ReadFromLoriotWebSocket(CronJobBase):
 
     def do(self):
         async def test():
-            async with ws.connect(r'wss://eu1.loriot.io/app?token=vnoTPgAAAA1ldTEubG9yaW90LmlvioIq8UeQhDkDJ-VVtrbZNQ==') as websocket:
-                await websocket.send('hello')
-                response = await websocket.recv()
-                data = json.loads(response)
+            data = {}
+            data['EUI'] = 'default'
+            while data['EUI'][-2:] != '45':
+                async with ws.connect(r'wss://eu1.loriot.io/app?token=vnoTPgAAAA1ldTEubG9yaW90LmlvioIq8UeQhDkDJ-VVtrbZNQ==') as websocket:
 
-            ownerLDI, created = Owner.objects.get_or_create(name='Andrin', idNumber=int(1))
+                    await websocket.send('hello')
+                    response = await websocket.recv()
+                    data = json.loads(response)
+
+            ownerLDI, created = Owner.objects.get_or_create(name='Andrin Battaglia', idNumber=int(2))
             if created:
                 ownerLDI.save()
 
-
-
-            sensorLatitude = '47.494098'
-            sensorLongitude = '8.731144'
-
-
+            currentSensor = Sensor.objects.filter(ldi_number=int(data['EUI'], 16))
+            if len(data['data'])>8 and currentSensor.count()==0:
+                sensorLatitude = (int(data['data'][8:10], 16) * 256**3 +int(data['data'][10:12], 16) * 256**2 +int(data['data'][12:14], 16) * 256 + int(data['data'][14:16], 16)-2147483648) / 1000000
+                sensorLongitude =  (int(data['data'][16:18], 16) * 256**3 +int(data['data'][18:20], 16) * 256**2 +int(data['data'][20:22], 16) * 256 + int(data['data'][22:24], 16)-2147483648) / 1000000
 
 
 
 
-            sensorModel, created = Sensor.objects.get_or_create(
-                owner_id= ownerLDI.id,
-                name = str(data['EUI']),
-                idNumber = int(0),
-                geom = Point(8.731144,47.494098),
-                location = 'Empty',
-                longitude = 8.731144,
-                latitude = 47.494098
+                sensorModel, created = Sensor.objects.get_or_create(
+                    owner_id= ownerLDI.id,
+                    location_number = 0,
+                    ldi_number = int(data['EUI'],16),
+                    geom = Point(float(sensorLongitude),float(sensorLatitude)),
+                    location = 'Empty',
+                    longitude = float(sensorLongitude),
+                    latitude = float(sensorLatitude),
+                    )
 
-                )
-
-            if created:
                 geoNamesRequestUrl = r'http://api.geonames.org/findNearbyJSON?lat='+str(sensorLatitude)+'&lng='+str(sensorLongitude)+'&username=DrKarlMarxx'
-                with urllib.request.urlopen(geoNamesRequestUrl) as urlJson:
-                    geoNamesData = json.loads(urlJson.read())
-                sensorModel.location = geoNamesData["geonames"][0]["toponymName"]
+                try:
+                    with urllib.request.urlopen(geoNamesRequestUrl) as urlJson:
+                        geoNamesData = json.loads(urlJson.read())
+                    sensorModel.location = geoNamesData["geonames"][0]["toponymName"]
+                except:
+                    pass
                 sensorModel.save()
-                print(sensorModel.geom)
-            valueFromJson = float(data['value'])
-            timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson)
-            if created:
-                timestepData.save()
+            elif len(data['data'])>8 and currentSensor.count()==1:
+                sensorLatitude = (int(data['data'][8:10], 16) * 256 ** 3 + int(data['data'][10:12],
+                                                                               16) * 256 ** 2 + int(data['data'][12:14],
+                                                                                                    16) * 256 + int(
+                    data['data'][14:16], 16) - 2147483648) / 1000000
+                sensorLongitude = (int(data['data'][16:18], 16) * 256 ** 3 + int(data['data'][18:20],
+                                                                                 16) * 256 ** 2 + int(
+                    data['data'][20:22], 16) * 256 + int(data['data'][22:24], 16) - 2147483648) / 1000000
+
+                sensorModel = currentSensor[0]
+                sensorModel.geom = Point(float(sensorLongitude),float(sensorLatitude))
+                sensorModel.longitude = float(sensorLongitude)
+                sensorModel.latitude = float(sensorLatitude)
+                sensorModel.save()
+            else:
+                sensorModel = currentSensor[0]
+
+            if sensorModel:
+
+                PM10 = (int(data['data'][0:2], 16) * 256 + int(data['data'][2:4], 16)) / 100
+                PM25 = (int(data['data'][4:6], 16) * 256 + int(data['data'][6:8], 16)) / 100
+                timestepData, created = SensorValue.objects.get_or_create(sensor_id=sensorModel.id, value=PM10, type='P1')
+
+                if created:
+                    timestepData.save()
+                timestepData, created = SensorValue.objects.get_or_create(sensor_id=sensorModel.id, value=PM25, type='P2')
+                if created:
+                    timestepData.save()
+
+
+                currentSensorValue, created = CurrentSensorValue.objects.get_or_create(sensor_id=sensorModel.id,
+                                                                                       value=PM10,
+                                                                                       type='P1')
+                currentSensorValue.save()
+                currentSensorValue, created = CurrentSensorValue.objects.get_or_create(sensor_id=sensorModel.id,
+                                                                                       value=PM25,
+                                                                                       type='P2')
+                currentSensorValue.save()
 
         asyncio.get_event_loop().run_until_complete(test())
 

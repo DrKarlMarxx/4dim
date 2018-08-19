@@ -43,7 +43,8 @@ def detailHex(request):
 
     value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
     cluster_list = Sensor.objects.order_by('clusterNumber').values_list('clusterNumber', flat=True).distinct()
-
+    value_type_list = [d for d in value_type_list]
+    value_type_list.insert(0, value_type_list.pop(value_type_list.index('P1')))
 
     template = loader.get_template('devices/detailBootstrap.html')
     context = {'value_type_list': value_type_list,'cluster_list':cluster_list}

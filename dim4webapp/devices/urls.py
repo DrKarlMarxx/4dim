@@ -6,7 +6,7 @@ from . import views, converters
 register_converter(converters.FourDigitYearConverter, 'intList')
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.detailHex, name='index'),
     # ex: /polls/5/
     path('<int:owner_id>/', views.detailHex, name='detailHex'),
     path('<int:owner_id>/test', views.detail, name='detail'),

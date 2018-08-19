@@ -39,7 +39,7 @@ def detail(request, owner_id):
     return HttpResponse(template.render(context,request))
 
 
-def detailHex(request, owner_id):
+def detailHex(request):
 
     value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
     cluster_list = Sensor.objects.order_by('clusterNumber').values_list('clusterNumber', flat=True).distinct()

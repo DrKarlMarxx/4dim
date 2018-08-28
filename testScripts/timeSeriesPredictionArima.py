@@ -51,7 +51,7 @@ dataset = dataset['PM10']
 dataset.plot()
 plt.show()
 
-ntrain = int(num.floor(len(dataset)*0.66))
+ntrain = int(num.floor(len(dataset)*0.6))
 train = dataset.iloc[1:ntrain]
 test = dataset.iloc[ntrain:]
 #train.diff()[1:]
@@ -66,7 +66,7 @@ plt.ylabel('[-]')
 
 plt.show()
 
-model = ARIMA(train.iloc[1:],exog=exegon.values[2+1:ntrain+1], order=(4,0,1))
+model = ARIMA(train.iloc[1:],exog=exegon.values[2+1:ntrain+1], order=(2,0,1))
 model_fit = model.fit(disp=0)
 ar_coef = model_fit.arparams
 print(model_fit.summary())
@@ -93,8 +93,8 @@ plt.show()
 
 prediction24h = num.zeros((100,24))
 measurement24h = num.zeros((100,24))
-for ix in range(100):
-	model = ARIMA(dataset.iloc[2:ntrain + ix], exog=exegon.values[2:ntrain + ix], order=(4, 0, 1))
+for ix in range(10):
+	model = ARIMA(dataset.iloc[2:ntrain + ix], exog=exegon.values[2:ntrain + ix], order=(2, 0, 1))
 	model_fit = model.fit(disp=0,solver = 'bfgs',tol=1e-08)
 	#prediction24h[ix, :]=test.values[ix]+num.cumsum(model_fit.predict(start=ntrain+ix-2, end = ntrain+ix+23-2,exog=exegon.values[ntrain-2+ix:ntrain+ix+24]).values)
 	prediction24h[ix, :] = model_fit.predict(start=ntrain + ix-2, end=ntrain + ix + 23-2,exog=exegon.values[ntrain-4+ix:ntrain+ix+24]).values
@@ -113,14 +113,14 @@ plt.show()
 
 fig2 = plt.figure(2)
 ax1 = fig2.add_subplot(211)
-ax1.plot(measurement24h[24], label='Messwert')
-ax1.plot(prediction24h[24], label='Prognose')
+ax1.plot(measurement24h[0], label='Messwert')
+ax1.plot(prediction24h[0], label='Prognose')
 ax1.set_xlabel('Prognosenlänge [h]')
 ax1.set_ylabel('Feinstaubwert $PM_{10}\ [\mu g/m3]$')
 ax1.legend()
 ax2 = fig2.add_subplot(212)
-ax2.plot(measurement24h[48], label='Messwert')
-ax2.plot(prediction24h[48], label='Prognose')
+ax2.plot(measurement24h[9], label='Messwert')
+ax2.plot(prediction24h[9], label='Prognose')
 ax2.set_xlabel('Prognosenlänge [h]')
 ax2.set_ylabel('Feinstaubwert $PM_{10}\ [\mu g/m3]$')
 ax2.legend()

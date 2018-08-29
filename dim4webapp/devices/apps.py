@@ -77,14 +77,14 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                     valueFromJson = float(sensorvalueList['value'])
                     timestepData = SensorValue(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
                     timestepData.save()
-                    runningCurrentSensorValue = CurrentSensorValue.objects.filter(sensor_id=sensorModel.id)
+                    runningCurrentSensorValue = CurrentSensorValue.objects.filter(sensor_id=sensorModel.id,type = typeFromJson)
                     if runningCurrentSensorValue.count()==0:
                         currentSensorValue, created = CurrentSensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
                     else:
                         currentSensorValue = runningCurrentSensorValue[0]
                         currentSensorValue.value = valueFromJson
                     currentSensorValue.save()
-                    
+
 
 
                 """

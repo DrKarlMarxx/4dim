@@ -75,7 +75,8 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                 for sensorvalueList in sensorData['sensordatavalues'][:]:
                     typeFromJson = str(sensorvalueList['value_type'])
                     valueFromJson = float(sensorvalueList['value'])
-                    timestepData, created = SensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
+                    timestepData = SensorValue(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
+                    timestepData.save()
                     runningCurrentSensorValue = CurrentSensorValue.objects.filter(sensor_id=sensorModel.id)
                     if runningCurrentSensorValue.count()==0:
                         currentSensorValue, created = CurrentSensorValue.objects.get_or_create(sensor_id = sensorModel.id,value = valueFromJson,type = typeFromJson)
@@ -83,8 +84,8 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                         currentSensorValue = runningCurrentSensorValue[0]
                         currentSensorValue.value = valueFromJson
                     currentSensorValue.save()
-                    if created:
-                        timestepData.save()
+                    
+
 
                 """
                 weatherDataRequestUrl = r'api.openweathermap.org/data/2.5/weather?lat='+str(sensorLatitude)+'&lon='+str(sensorLongitude)
@@ -110,63 +111,6 @@ class ReadFromLuftdateInfoJSON(CronJobBase):
                 savedSensorValue.delete()
 
 
-class ClusterTimeSeries(CronJobBase):
-    RUN_EVERY_MINS = 60*24 # every 2 hours
-
-    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
-    code = 'dim4webapp.clusterTimeSeries'    # a unique code
-
-    def do(self):
-        for savedSensorValue in SensorValue.objects.all():
-            if (timezone.now()-savedSensorValue.created).days >= 7:
-                savedSensorValue.delete()
-        timeSeries = []
-        sensor_list=Sensor.objects.filter(owner=1)
-        sensor_list_with_P1=[]
-        sensor_list_with_no_cluster = []
-
-        for sensor in sensor_list:
-            dataDict = {}
-            values = list(SensorValue.objects.filter(sensor=sensor.id, type='P1').order_by('created').values('created','value'))
-            dataDict['value'] = [float(d['value']) for d in values]
-            dataDict['created'] = [d['created'] for d in values]
-            dataDict['created'].append(timezone.now())
-            dataDict['value'].append(0)
-            dataDict['created'].insert(0,timezone.now()-datetime.timedelta(days=8))
-            dataDict['value'].insert(0,0)
-            if max(dataDict['value'])<500:
-                series = pd.Series(dataDict['value'],index=pd.DatetimeIndex(dataDict['created']))
-                converted = series.asfreq('60Min',method='pad')
-
-
-                coeff = pywt.wavedec(converted,'db2', mode='per')
-                sigma = np.std(coeff[-1])
-                uthresh = sigma * np.sqrt(2 * np.log(len(converted)))
-                denoised = coeff[:]
-                denoised[1:] = (pywt.threshold(i, value=uthresh) for i in denoised[1:])
-                signal = pywt.waverec(denoised, 'db2', mode='per')
-
-                timeSeries.append(signal)
-                sensor_list_with_P1.append(sensor)
-            else:
-                sensor_list_with_no_cluster.append(sensor)
-
-
-        #db = KMeans(n_clusters=20, init="k-means++").fit_predict(np.array(timeSeries))
-        db = DBSCAN(eps=5).fit_predict(np.array(timeSeries))
-
-
-
-        for i,sensor in enumerate(sensor_list_with_P1):
-            sensor.clusterNumber = db[i]
-            sensor.save()
-
-        for sensor in sensor_list_with_no_cluster:
-            sensor.clusterNumber = -1
-            sensor.save()
-
-        np.savetxt('LDIDaten.txt', np.array(timeSeries))
-        print('complete')
 
 
 

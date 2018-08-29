@@ -19,7 +19,7 @@ import json
 import urllib.request
 
 
-from .MyCharts import LineChartJSONView, TimeChartJSONView, TimeChartClusterJSONView
+from .MyCharts import LineChartJSONView, TimeChartJSONView
 
 
 def index(request):
@@ -262,7 +262,7 @@ def get_linechart_chartjs(request, sensor_ids):
 
 
 linechart_chartjs = TimeChartJSONView.as_view(sensor_ids=0,value_type=['P1'])
-linechart_chartjs_cluster = TimeChartClusterJSONView.as_view(cluster_id=0,value_type='P1')
+
 
 @ajax
 def getSensorData(request, sensor_id):

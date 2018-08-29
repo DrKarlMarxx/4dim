@@ -124,6 +124,7 @@ window.myLine=new Chart(ctx, config);
 
 
 
+
 function showData(id) {
     var urlIDs='';
     var timeFormat = 'YYYY-MM-DD HH:mm:ss';
@@ -131,8 +132,21 @@ function showData(id) {
     $.get('/api/'+sensorValueSelection.options[sensorValueSelection.selectedIndex].value+'/'+urlIDs+'/getSensorData', function(data){
         //onSuccess
         config.data = data;
+
+
         window.myLine.update();
     });
+
+
+    var dictUnits = {
+    P1: '[\u03BCg/m3]',
+    P2: '[\u03BCg/m3]',
+    P0: '[\u03BCg/m3]',
+    temperatire: '[°C]',
+    Humidity: '[%]',
+    pressure: '[Pa]'
+    };
+    config.options.scales.yAxes[0].scaleLabel.labelString = dictUnits[sensorValueSelection.options[sensorValueSelection.selectedIndex].value]
 }
 
 

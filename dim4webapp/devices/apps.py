@@ -7,11 +7,6 @@ from django.contrib.gis.geos import Point
 import asyncio
 import websockets as ws
 from django.utils import timezone
-import numpy as np
-from sklearn.cluster import DBSCAN, KMeans
-import pywt
-import datetime
-import pandas as pd
 
 
 

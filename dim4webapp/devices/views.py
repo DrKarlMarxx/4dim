@@ -39,15 +39,34 @@ def detail(request, owner_id):
     return HttpResponse(template.render(context,request))
 
 
-def detailHex(request):
+def detailHexMap(request):
 
     value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
     cluster_list = Sensor.objects.order_by('clusterNumber').values_list('clusterNumber', flat=True).distinct()
     value_type_list = [d for d in value_type_list]
     value_type_list.insert(0, value_type_list.pop(value_type_list.index('P1')))
 
-    template = loader.get_template('devices/detailBootstrap.html')
+    template = loader.get_template('devices/detailBootstrapMap.html')
     context = {'value_type_list': value_type_list,'cluster_list':cluster_list}
+
+    return HttpResponse(template.render(context,request))
+
+
+def detailHome(request):
+
+    template = loader.get_template('devices/detailBootstrapHome.html')
+    value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
+    value_type_list = [d for d in value_type_list]
+    value_type_list.insert(0, value_type_list.pop(value_type_list.index('P1')))
+    context = {'value_type_list': value_type_list}
+
+    return HttpResponse(template.render(context,request))
+
+def detailAbout(request):
+
+    template = loader.get_template('devices/about.html')
+
+    context = {}
 
     return HttpResponse(template.render(context,request))
 
@@ -105,9 +124,15 @@ def getClosestSensorData(request, value_type,longitude,latitude):
         result['owner'] = Owner.objects.filter(id=closestSensor.owner_id)[0].name
         result['distance'] = int(closestSensor.distance.m)
         result['data'] = CurrentSensorValue.objects.filter(sensor_id = closestSensor.id)[0].value
+        result['longitude'] = closestSensor.longitude
+        result['latitude'] = closestSensor.latitude
+        result['id']=closestSensor.id
     except:
         result['distance'] = 'not found'
         result['data'] = 'not found'
+        result['id']=False
+        result['longitude'] = False
+        result['latitude'] = False
     geoNamesRequestUrl = r'http://api.geonames.org/findNearbyJSON?lat=' + str(latitude) + '&lng=' + str(
         longitude) + '&username=DrKarlMarxx'
     try:

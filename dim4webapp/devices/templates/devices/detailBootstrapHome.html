@@ -1,0 +1,145 @@
+{% extends 'devices/base.html' %}
+
+{% load staticfiles %}
+
+{% block body_block %}
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+
+        //L.mapbox.accessToken = 'pk.eyJ1IjoiZHJrYWxybWFyeHgiLCJhIjoiY2poeGl3NXc3MGI2dzNxcHV1eHh2OGh4ZyJ9.9VnqOY3kY8Rid8FUFb2Okw'
+    	var mymap = L.map('mapid','mapbox.streets').setView([46.7984, 8.231879], 8);
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox.streets',
+        renderer: L.svg(),
+        accessToken: 'pk.eyJ1IjoiZHJrYWxybWFyeHgiLCJhIjoiY2poeGl3NXc3MGI2dzNxcHV1eHh2OGh4ZyJ9.9VnqOY3kY8Rid8FUFb2Okw',
+    }).addTo(mymap);
+		// Make a reusable color scale array
+		var colorRange = [ 'green', 'yellow', 'red' ];
+		// Create the legend to illustrate the color scale being divergent
+
+
+
+function onLocationFound(e) {
+    var radius = e.accuracy / 2;
+
+    L.marker(e.latlng).addTo(mymap)
+        .bindPopup("You are within " + radius + " meters from this point");
+
+    L.circle(e.latlng, radius).addTo(mymap);
+
+    var pingLayer = L.pingLayer().addTo(mymap);
+
+    $.get('/api/P1/'+String(e.longitude)+'/'+String(e.latitude)+'/getClosestSensorData', function(result){
+            //onSuccess
+            $('#pName').text(result['name'])
+            $('#pPM10Value').text(result['data']+' \u03BC'+'g/m3')
+            $('#pDistance').text(result['distance']+' m ')
+            $('#pOwner').text(result['owner'])
+            showData(result['id']);
+
+            setInterval(function() {
+              pingLayer.ping([ result['longitude'], result['latitude'] ]);
+            }, 3000);
+    });
+
+    $.get('/api/P2/'+String(e.longitude)+'/'+String(e.latitude)+'/getClosestSensorData', function(result){
+            //onSuccess
+            $('#pPM25Value').text(result['data']+' \u03BC'+'g/m3')
+    });
+}
+
+
+
+mymap.on('locationfound', onLocationFound);
+
+function onLocationError(e) {
+    alert(e.message);
+}
+
+mymap.on('locationerror', onLocationError);
+
+mymap.locate({setView: true, maxZoom: 8});
+
+    var options = {
+
+    radiusRange: [ 20, 30 ],
+    radius: 30,
+    radiusScaleExtent: [1,100],
+    opacity: 0.5,
+    duration: 500,
+    colorRange: colorRange,
+    colorScaleExtent: [0,100]
+};
+var sensorValueSelection = document.getElementById("sensor_value_selection");
+
+
+
+var ctx = $("#myChart").get(0).getContext("2d");
+var config = {
+    type: 'line',
+     data: '',
+     options: {
+        responsive: true,
+        title: {
+            text: 'Chart.js Time Scale'
+        },
+        scales: {
+            xAxes: [{
+                type: 'time',
+                display: true,
+                autoSkip: false,
+                maxRotation: 0,
+                minRotation: 0,
+                ticks: {
+                        callback: function(dataLabel, index) {
+                            // Hide the label of every 2nd dataset. return null to hide the grid line too
+                            return index % 2 === 0 ? dataLabel : null;
+                        }
+                    }
+            }],
+            yAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: 'value'
+                }
+            }]
+        },
+    },
+}
+window.myLine=new Chart(ctx, config);
+
+
+
+
+
+
+
+function showData(id) {
+    var urlIDs='';
+    var timeFormat = 'YYYY-MM-DD HH:mm:ss';
+    urlIDs =  id;
+    $.get('/api/'+sensorValueSelection.options[sensorValueSelection.selectedIndex].value+'/'+urlIDs+'/getSensorData', function(data){
+        //onSuccess
+        config.data = data;
+        window.myLine.update();
+    });
+}
+
+
+
+
+
+</script>
+
+{% endblock %}
+

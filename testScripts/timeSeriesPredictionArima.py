@@ -43,15 +43,30 @@ dataset.dropna( inplace=True)
 columns = dataset.columns.tolist()
 newColumns = columns[1:]+columns[:1]
 dataset = dataset[newColumns]
-exegon = dataset[['Regendauer','Globalstrahlung','Luftfeuchte relativ']]
+#dataset['Bool. Tag']=[int(x&y) for (x,y) in zip(dataset.index.hour < 20,dataset.index.hour>8)]
+#dataset['Bool. Tag']=dataset['Bool. Tag']-0.5
+corr = dataset.corr()
+fig, ax = plt.subplots()
+cax=ax.matshow(abs(corr))
+print(corr)
+fig.colorbar(cax)
+labels1 = list(corr.columns)
+labels1[3]='Luftgeschw.'
+plt.xticks(range(len(corr.columns)), labels1,rotation=30);
+plt.yticks(range(len(corr.columns)), labels1);
+plt.show()
+exegon = dataset[['Regendauer','Windgeschwindigkeit vektoriell']]
+#exegon['index1']=[int(x&y) for (x,y) in zip(exegon.index.hour < 20,exegon.index.hour>8)]
+#exegon['index1']=exegon['index1']-0.5
 dataset = dataset['PM10']
-
+#exegon['Regendauer']=exegon['Regendauer']-num.mean(exegon['Regendauer'])
+#exegon['Windgeschwindigkeit vektoriell']=exegon['Windgeschwindigkeit vektoriell']-num.mean(exegon['Windgeschwindigkeit vektoriell'])
 
 
 dataset.plot()
 plt.show()
 
-ntrain = int(num.floor(len(dataset)*0.6))
+ntrain = int(num.floor(len(dataset)*0.66))
 train = dataset.iloc[1:ntrain]
 test = dataset.iloc[ntrain:]
 #train.diff()[1:]
@@ -66,21 +81,21 @@ plt.ylabel('[-]')
 
 plt.show()
 
-model = ARIMA(train.iloc[1:],exog=exegon.values[2+1:ntrain+1], order=(2,0,1))
+model = ARIMA(train.diff(1)[1:],exog=exegon.values[2-1:ntrain-1], order=(2,0,1))
 model_fit = model.fit(disp=0)
 ar_coef = model_fit.arparams
 print(model_fit.summary())
 # plot residual errors
 residuals = DataFrame(model_fit.resid)
 ax = residuals.rolling(window=168).mean().plot()
-plt.xlabel('Zeitschritt [h]')
+plt.xlabel('Zeitschritt/Datum')
 plt.ylabel('Gleitender Mittelwert der Residuen $[\mu g/m3]$')
 ax.legend_.remove()
 plt.ylim(-100,100)
 plt.show()
 ax = residuals.rolling(window=168).var().plot()
 plt.ylim(0,100)
-plt.xlabel('Zeitschritt [h]')
+plt.xlabel('Zeitschritt/Datum')
 plt.ylabel('Gleitende Varianz der Residuen $[\mu g/m3]$')
 ax.legend_.remove()
 plt.show()
@@ -93,13 +108,17 @@ plt.show()
 
 prediction24h = num.zeros((100,24))
 measurement24h = num.zeros((100,24))
-for ix in range(10):
-	model = ARIMA(dataset.iloc[2:ntrain + ix], exog=exegon.values[2:ntrain + ix], order=(2, 0, 1))
-	model_fit = model.fit(disp=0,solver = 'bfgs',tol=1e-08)
-	#prediction24h[ix, :]=test.values[ix]+num.cumsum(model_fit.predict(start=ntrain+ix-2, end = ntrain+ix+23-2,exog=exegon.values[ntrain-2+ix:ntrain+ix+24]).values)
-	prediction24h[ix, :] = model_fit.predict(start=ntrain + ix-2, end=ntrain + ix + 23-2,exog=exegon.values[ntrain-4+ix:ntrain+ix+24]).values
-	measurement24h[ix,:] = test.values[ix:ix+24]
-
+datetime24h = []
+rain24h = num.zeros((100,24))
+for ix in range(100):
+	model = ARIMA(dataset.diff(1)[2:ntrain + ix], exog=exegon.values[2-2:ntrain + ix-2], order=(5, 0, 1))
+	model_fit = model.fit(disp=0)
+	prediction24h[ix, :]=test.values[ix]+num.cumsum(model_fit.predict(start=ntrain+ix-2, end = ntrain+ix+23-2,exog=exegon.values[ntrain-5-2+ix:ntrain+ix+24-2]).values)
+	#prediction24h[ix, :] = model_fit.predict(start=ntrain + ix-2, end=ntrain + ix + 23-2,exog=exegon.values[ntrain-4+ix:ntrain+ix+24]).values
+	measurement24h[ix,:] = test.iloc[ix:ix+24]
+	rain24h[ix,:]=exegon.values[ntrain+ix:ntrain+ix+24,0]
+	datetime24h.append(exegon.iloc[ntrain+ix:ntrain+ix+24,0].index)
+	print(ix)
 
 rmse24  = [num.sqrt(mean_squared_error(prediction24h[:,t], measurement24h[:,t])) for t in range(24)]
 
@@ -112,16 +131,26 @@ plt.show()
 
 
 fig2 = plt.figure(2)
-ax1 = fig2.add_subplot(211)
-ax1.plot(measurement24h[0], label='Messwert')
-ax1.plot(prediction24h[0], label='Prognose')
-ax1.set_xlabel('Prognosenlänge [h]')
+ax1 = fig2.add_subplot(121)
+line1 = ax1.plot(datetime24h[92].strftime('%H'),measurement24h[92], label='Messwert')
+line2 = ax1.plot(datetime24h[92].strftime('%H'),prediction24h[92], label='Prognose')
+ax1.set_xlabel('Prognosenzeitschritte [Uhrzeit]')
 ax1.set_ylabel('Feinstaubwert $PM_{10}\ [\mu g/m3]$')
-ax1.legend()
-ax2 = fig2.add_subplot(212)
-ax2.plot(measurement24h[9], label='Messwert')
-ax2.plot(prediction24h[9], label='Prognose')
-ax2.set_xlabel('Prognosenlänge [h]')
+ax11 = ax1.twinx()
+line3 = ax11.plot(datetime24h[92].strftime('%H'),rain24h[92],color='#2ca02c', label='Regendauer')
+ax11.set_ylabel('[min]')
+ax1.legend(loc=2)
+ax11.legend(loc=1)
+#ax1.legend((line1,line2,line3),("Messwert","Prognose","Regendauer"))
+ax2 = fig2.add_subplot(122)
+line1 = ax2.plot(datetime24h[9].strftime('%H'),measurement24h[9], label='Messwert')
+line2 = ax2.plot(datetime24h[9].strftime('%H'),prediction24h[9], label='Prognose')
+ax21 = ax2.twinx()
+line3 = ax21.plot(datetime24h[9].strftime('%H'),rain24h[9],color='#2ca02c', label='Regendauer')
+ax21.set_ylabel('[min]')
+ax2.set_xlabel('Prognosenzeitschritte [Uhrzeit]')
 ax2.set_ylabel('Feinstaubwert $PM_{10}\ [\mu g/m3]$')
-ax2.legend()
+ax2.legend(loc=2)
+ax21.legend(loc=1)
+#ax2.legend((line1,line2,line3),("Messwert","Prognose","Regendauer"))
 plt.show()

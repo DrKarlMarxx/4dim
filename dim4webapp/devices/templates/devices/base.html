@@ -118,8 +118,6 @@ html, body, #map {
     </div>
     <div class="col-sm-8">
       <div id="mapid" class="my-4 w-100" style="height: 100%; width:100%"></div>
-        <div id="legend" class="my-4 w-100"></div>
-        <br/>
             <select id="sensor_value_selection" class="form-control"  onchange='loadHexbin(this)' onload='loadHexbin(this)'>
             {% for entry in value_type_list %}
                 <option value="{{entry}}">{{entry}}</option>

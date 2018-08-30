@@ -18,11 +18,6 @@
     	var mymap = L.map('mapid','mapbox.streets').setView([46.7984, 8.231879], 8);
 
         var colorRange = [ 'green', 'yellow', 'red' ];
-        var legendEntries = [ '0% - lowest value', '25%', '50%', '75%', '100% - max value' ];
-		var colorScale = d3.scaleLinear().domain([ 0, 2, 4 ]).range(colorRange);
-		var legend = d3.select('.legend').selectAll('.legend-entry').data(legendEntries).enter().append('div').attr('class', 'legend-entry');
-		legend.append('div').attr('class', 'color-tile').style('background-color', function(d, i) { return colorScale(i); });
-		legend.append('div').attr('class', 'description').text(function(d) { return d; });
 
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -78,7 +73,7 @@ var options = {
 var sensorValueSelection = document.getElementById("sensor_value_selection");
 
 window.onload = function(){
-    document.getElementById("sensor_value_selection").className="P1";
+    document.getElementById("sensor_value_selection").option="P1";
     var obj = {
       ["value"]: "P1"
     }

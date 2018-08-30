@@ -28,7 +28,7 @@ def detailHome(request):
     value_type_list = SensorValue.objects.order_by().values_list('type', flat=True).distinct()
     value_type_list = [d for d in value_type_list]
     value_type_list.insert(0, value_type_list.pop(value_type_list.index('P1')))
-    context = {'value_type_list': value_type_list}
+    context = {'value_type_list': ['P1']}
 
     return HttpResponse(template.render(context,request))
 
